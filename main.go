@@ -31,8 +31,8 @@ func main() {
 		return
 	}
 
-    kelasDB := repository.NewKelasDB()
-    kelasUC := service.NewClassUseCase(kelasDB)
+    kelasDB := repository.NewKelasRepository(db)
+    kelasUC := service.NewKelasService(kelasDB)
     router := routes.SetupRouter(kelasUC)
 
     router.Run(":8080")

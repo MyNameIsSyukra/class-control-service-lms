@@ -48,5 +48,19 @@ func SetupRouter(classUC controller.KelasController) *gin.Engine {
 		c.JSON(http.StatusCreated, class)
 	})
 
+	router.PUT("/class/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		var class entities.Kelas
+		c.BindJSON(&class)
+		err := classUC.Update(id, &class)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, class)	
+	})
+
 	return router
 }

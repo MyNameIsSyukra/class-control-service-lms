@@ -2,48 +2,44 @@ package kelas
 
 import (
 	entities "LMSGo/entity"
+
+	"gorm.io/gorm"
 )
 
-type KelasDB struct {
-	kelas []*entities.Kelas
+type kelasRepository struct {
+	db *gorm.DB
 }
 
-func NewKelasDB() *KelasDB {
-	return &KelasDB{
-		kelas: []*entities.Kelas{
-			{
-				ID: 		"1",
-				Name: 		"Kelas 1",
-				Description: 	"Kelas 1",
-				Teacher: 	"Teacher 1",
-				TeacherID: 	1,
-			},
-			{
-				ID: 		"2",
-				Name: 		"Kelas 2",
-				Description: 	"Kelas 2",
-				Teacher: 	"Teacher 2",
-				TeacherID: 	2,
-			},
-		},
+func NewKelasRepository(db *gorm.DB) *kelasRepository {
+	return &kelasRepository{db}
+}
+func (repo *kelasRepository) GetAll() ([]*entities.Kelas, error) {
+	var kelas []*entities.Kelas
+	if err := repo.db.Find(&kelas).Error; err != nil {
+		return nil, err
 	}
-}
-
-func (repo *KelasDB) GetAll() ([]*entities.Kelas, error) {
-	return repo.kelas, nil
+	return kelas, nil
 }
 
 
-func (repo *KelasDB) GetById(id string) (*entities.Kelas, error) {
-	for _, k := range repo.kelas {
-		if k.ID == id {
-			return k, nil
-		}
+func (repo *kelasRepository) GetById(id string) (*entities.Kelas, error) {
+	var kelas entities.Kelas
+	if err := repo.db.Where("id = ?", id).Find(&kelas).Error; err != nil {
+		return nil, err
 	}
-	return nil, nil
+	return &kelas, nil
 }
 
-func (repo *KelasDB) Create(kelas *entities.Kelas) error {
-	repo.kelas = append(repo.kelas, kelas)
+func (repo *kelasRepository) Create(kelas *entities.Kelas) error {
+	if err := repo.db.Create(kelas).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *kelasRepository) Update(id string, kelas *entities.Kelas) error {
+	if err := repo.db.Where("id = ?", id).Updates(kelas).Error; err != nil {
+		return err
+	}
 	return nil
 }

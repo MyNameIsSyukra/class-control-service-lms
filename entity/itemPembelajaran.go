@@ -6,12 +6,12 @@ import (
 
 type ItemPembelajaran struct{
 	gorm.Model
-	IdItemPembelajaran int
-	HeadingPertemuan string
-	BodyPertemuan string
-	FileName string
-	FilePath string
-	UrlVideo string
-	Kelas_idKelas int
+	IdItemPembelajaran int `json:"idItemPembelajaran"`
+	HeadingPertemuan string `json:"headingPertemuan"`
+	BodyPertemuan string `json:"bodyPertemuan"`
+	FileName string `json:"fileName"`
+	FilePath string `json:"filePath"`
+	UrlVideo string `json:"urlVideo"`
+	Kelas_idKelas int `json:"kelas_idKelas"`
 }
 
