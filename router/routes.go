@@ -62,5 +62,17 @@ func SetupRouter(classUC controller.KelasController) *gin.Engine {
 		c.JSON(http.StatusOK, class)	
 	})
 
+	router.DELETE("/class/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		err := classUC.Delete(id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusNoContent, nil)
+	})
+
 	return router
 }

@@ -3,7 +3,7 @@ package main
 import (
 	database "LMSGo/config"
 	migration "LMSGo/migration"
-	repository "LMSGo/repository/kelas"
+	repository "LMSGo/repository"
 	routes "LMSGo/router"
 	service "LMSGo/service"
 	"os"

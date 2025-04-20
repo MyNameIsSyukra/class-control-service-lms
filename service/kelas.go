@@ -11,14 +11,14 @@ type (
 		GetById(id string) (*entities.Kelas, error)
 		Create(kelas *entities.Kelas) error
 		Update(id string, kelas *entities.Kelas) error
+		Delete(id string) error
 	}
 
-	kelasService struct {
-	kelasRepo database.Repository
+	kelasService struct {kelasRepo database.KelasRepository
 }
 )
 
-func NewKelasService(kelasRepo database.Repository) KelasService {
+func NewKelasService(kelasRepo database.KelasRepository) KelasService {
 	return &kelasService{kelasRepo}
 }
 
@@ -38,6 +38,8 @@ func (service *kelasService) Update(id string, kelas *entities.Kelas) error {
 	return service.kelasRepo.Update(id, kelas)
 }
 
-
+func (service *kelasService) Delete(id string) error {
+	return service.kelasRepo.Delete(id)
+}
 
 
