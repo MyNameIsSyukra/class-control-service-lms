@@ -1,17 +1,19 @@
 package controller
 
 import (
-	entities "LMSGo/entity"
+	"LMSGo/dto"
 	kelas "LMSGo/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 type (
 	KelasController interface {
-	GetAll() ([]*entities.Kelas, error)
-	GetById(id string)(*entities.Kelas, error)
-	Create(kelas *entities.Kelas) error	
-	Update(id string, kelas *entities.Kelas) error
-	Delete(id string) error
+	Create(ctx *gin.Context)
+	GetAll(ctx *gin.Context)
+	GetById(ctx *gin.Context)
+	Update(ctx *gin.Context)
+	Delete(ctx *gin.Context)
 }
 	kelasController struct {
 		kelasService kelas.KelasService 
@@ -22,22 +24,66 @@ func NewKelasController(kelasService kelas.KelasService) KelasController {
 	return &kelasController{kelasService}
 }
 
-func (service *kelasController) Create(kelas *entities.Kelas) error {
-	return service.kelasService.Create(kelas)
+func (service *kelasController) Create(ctx *gin.Context) {
+	var req dto.CreateKelasRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(400, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	create, err := service.kelasService.Create(ctx.Request.Context(), &req)
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": "Failed to create class"})
+		return
+	}	
+	ctx.JSON(200, create)
 }
 
-func (service *kelasController) GetAll() ([]*entities.Kelas, error) {
-	return service.kelasService.GetAll()
+func (service *kelasController) GetAll(ctx *gin.Context) {
+	kelas, err := service.kelasService.GetAll()
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": "Failed to get classes"})
+		return
+	}
+	ctx.JSON(200, kelas)
 }
 
-func (service *kelasController) GetById(id string) (*entities.Kelas, error) {
-	return service.kelasService.GetById(id)
+func (service *kelasController) GetById(ctx *gin.Context) {
+	id := ctx.Param("id")
+	kelas, err := service.kelasService.GetById(ctx.Request.Context(), id)
+	if err != nil {
+		ctx.JSON(404, gin.H{"error": "Class not found"})
+		return
+	}
+	ctx.JSON(200, kelas)
 }
 
-func (service *kelasController) Update(id string, kelas *entities.Kelas) error {
-	return service.kelasService.Update(id, kelas)
+func (service *kelasController) Update(ctx *gin.Context) {
+	id := ctx.Param("id")
+	var req dto.CreateKelasUpdateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(400, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	kelas, err := service.kelasService.Update(ctx.Request.Context(), id, &req)
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": "Failed to update class"})
+		return
+	}
+	ctx.JSON(200, kelas)
 }
 
-func (service *kelasController) Delete(id string) error {
-	return service.kelasService.Delete(id)
+func (service *kelasController) Delete(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if id == "" {
+		ctx.JSON(400, gin.H{"error": "Invalid ID"})
+		return
+	}
+	err := service.kelasService.Delete(ctx.Request.Context(), id)
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": "Failed to delete class"})
+		return
+	}
+	ctx.JSON(200, gin.H{"message": "Class deleted successfully"})
 }

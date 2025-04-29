@@ -2,12 +2,15 @@ package main
 
 import (
 	database "LMSGo/config"
+	middleware "LMSGo/middleware"
 	migration "LMSGo/migration"
-	repository "LMSGo/repository"
+	provider "LMSGo/provider"
 	routes "LMSGo/router"
-	service "LMSGo/service"
+	"log"
 	"os"
 
+	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
 	"gorm.io/gorm"
 )
 
@@ -23,7 +26,32 @@ func args(db *gorm.DB) bool {
 }
 
 
+func run(server *gin.Engine) {
+	server.Static("/assets", "./assets")
+
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	var serve string
+	if os.Getenv("APP_ENV") == "localhost" {
+		serve = "127.0.0.1:" + port
+	} else {
+		serve = ":" + port
+	}
+
+	if err := server.Run(serve); err != nil {
+		log.Fatalf("error running server: %v", err)
+	}
+}
+
 func main() {
+    var (
+		injector = do.New()
+	)
+    provider.RegisterProviders(injector)
     db := database.SetUpDatabaseConnection()
     defer database.CloseDatabaseConnection(db)
 
@@ -31,11 +59,12 @@ func main() {
 		return
 	}
 
-    kelasDB := repository.NewKelasRepository(db)
-    kelasUC := service.NewKelasService(kelasDB)
-    router := routes.SetupRouter(kelasUC)
+    server := gin.Default()
+	server.Use(middleware.CORSMiddleware())
+    
+	// routes
+	routes.RegisterRoutes(server, injector)
 
-    router.Run(":8080")
-
+	run(server)
     
 }
