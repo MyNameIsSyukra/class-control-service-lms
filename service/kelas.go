@@ -1,4 +1,4 @@
-package kelas
+package service
 
 import (
 	dto "LMSGo/dto"

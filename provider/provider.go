@@ -27,8 +27,20 @@ func ProvideKelasDependency(injector *do.Injector){
 	})
 }
 
+func ProvideMemberDependency(injector *do.Injector) {
+	db := do.MustInvokeNamed[*gorm.DB](injector, "db")
+
+	memberRepository := repository.NewStudentRepository(db)
+	memberService := service.NewMemberService(memberRepository)
+
+	do.Provide(injector, func(i *do.Injector) (controller.MemberController, error) {
+		return controller.NewMemberController(memberService), nil
+	})
+}
+
 func RegisterProviders(injector *do.Injector) {
 	InitDatabase(injector)
 	ProvideKelasDependency(injector)
+	ProvideMemberDependency(injector)
 }
 
