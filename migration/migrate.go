@@ -9,6 +9,7 @@ import (
 func Migrate(db *gorm.DB) error{
 	db.AutoMigrate(&entities.Kelas{})
 	db.AutoMigrate(&entities.ItemPembelajaran{})
+	db.AutoMigrate(&entities.Member{})
 	
 	return nil
 }

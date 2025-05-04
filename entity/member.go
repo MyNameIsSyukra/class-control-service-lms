@@ -15,4 +15,6 @@ type Member struct {
 	CreatedAt time.Time	`json:"created_at"`
 	UpdatedAt time.Time	`json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+
+	Kelas Kelas `gorm:"foreignKey:Kelas_kelasID" json:"-"`
 }

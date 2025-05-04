@@ -3,6 +3,8 @@ package controller
 import (
 	"LMSGo/dto"
 	kelas "LMSGo/service"
+	response "LMSGo/utils"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +29,8 @@ func NewKelasController(kelasService kelas.KelasService) KelasController {
 func (service *kelasController) Create(ctx *gin.Context) {
 	var req dto.CreateKelasRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid request"})
+		res := response.FailedResponse("Invalid request")
+		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
 
@@ -40,12 +43,19 @@ func (service *kelasController) Create(ctx *gin.Context) {
 }
 
 func (service *kelasController) GetAll(ctx *gin.Context) {
-	kelas, err := service.kelasService.GetAll()
+	var pagination dto.PaginationRequest
+	if err := ctx.ShouldBindQuery(&pagination); err != nil {
+		res := response.FailedResponse("Invalid body parameters")
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	kelas, err := service.kelasService.GetAllKelasWithPagination(ctx.Request.Context(),pagination)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": "Failed to get classes"})
 		return
 	}
-	ctx.JSON(200, kelas)
+	res := response.SuccessResponse(kelas)
+	ctx.JSON(200, res)
 }
 
 func (service *kelasController) GetById(ctx *gin.Context) {

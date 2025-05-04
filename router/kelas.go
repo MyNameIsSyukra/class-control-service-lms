@@ -10,7 +10,7 @@ import (
 func Kelas(route *gin.Engine, injector *do.Injector){
 	kelasController := do.MustInvoke[controller.KelasController](injector)
 
-	routes := route.Group("/kelas")
+	routes := route.Group("/kelas/admin")
 	{
 		routes.POST("", kelasController.Create)
 		routes.GET("", kelasController.GetAll)

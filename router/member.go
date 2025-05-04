@@ -12,8 +12,13 @@ func Member(server *gin.Engine, injector *do.Injector) {
 	memberController := do.MustInvoke[controller.MemberController](injector)
 	member := server.Group("/member")
 	{
-		member.POST("/", memberController.AddMemberToClass)
-		member.GET("/", memberController.GetAllMembers)
+		member.POST("", memberController.AddMemberToClass)
 		member.DELETE("/:id", memberController.DeleteMember)
+		member.GET("/class/:classID", memberController.GetAllMembersByClassID)
 	}
+	member = server.Group("/student")
+	{
+		member.GET("/class/user/:userID", memberController.GetAllClassAndAssesmentByUserID)
+	}
+
 }

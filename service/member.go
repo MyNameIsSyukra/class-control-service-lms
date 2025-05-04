@@ -14,10 +14,11 @@ import (
 type (
 	MemberService interface {
 		AddMemberToClass(ctx context.Context, member *dto.AddMemberRequest) (*entities.Member, error)
-		GetAllMembers() ([]*entities.Member, error)
+		GetAllMembersByClassID(ctx context.Context, classID uuid.UUID) ([]*entities.Member, error)
 		// GetMemberById(ctx context.Context, id string) (*entities.Member, error)
 		// UpdateMember(ctx context.Context, id string, member *dto.UpdateMemberRequest) (*entities.Member, error)
 		DeleteMember(ctx context.Context, id uuid.UUID) error
+		GetAllClassAndAssesmentByUserID(ctx context.Context, userID uuid.UUID) ([]dto.GetClassAndAssignmentResponse, error)
 	}
 
 	memberService struct {
@@ -31,13 +32,11 @@ func NewMemberService(memberRepo database.StudentRepository) MemberService {
 
 func (service *memberService) AddMemberToClass(ctx context.Context, member *dto.AddMemberRequest) (*entities.Member, error) {
 	// Check if the member already exists in the class
-	existingMember, err := service.memberRepo.GetMemberById(ctx, nil, member.User_userID)
+	existingMember, err := service.memberRepo.GetMemberByClassIDAndUserID(ctx, nil,member.Kelas_kelasID ,member.User_userID)
 	if err != nil {
 		return nil, err
 	}	
-	if existingMember != nil {
-		return nil, fmt.Errorf("member with ID %s already exists in the class", member.User_userID)
-	}
+	print("existingMember",existingMember)
 
 	memberEntity := &entities.Member{
 		Username:      member.Username,
@@ -51,13 +50,69 @@ func (service *memberService) AddMemberToClass(ctx context.Context, member *dto.
 	return newMember, nil
 }
 
-func (service *memberService) GetAllMembers() ([]*entities.Member, error) {
-	members, err := service.memberRepo.GetAllMembers()
+func (service *memberService) GetAllClassAndAssesmentByUserID(ctx context.Context, userID uuid.UUID) ([]dto.GetClassAndAssignmentResponse, error) {
+	classes, err := service.memberRepo.GetAllClassAndAssesmentByUserID(ctx, nil, userID)
+	if err != nil {
+		return nil, err
+	}
+	return classes, nil
+}
+
+func (service *memberService) GetAllMembersByClassID(ctx context.Context, classID uuid.UUID) ([]*entities.Member, error) {
+	members, err := service.memberRepo.GetAllMembersByClassID(ctx, nil, classID)
 	if err != nil {
 		return nil, err
 	}
 	return members, nil
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 func (service *memberService) DeleteMember(ctx context.Context, id uuid.UUID) error {
 	member, err := service.memberRepo.GetMemberById(ctx, nil, id)

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"LMSGo/dto"
 	entities "LMSGo/entity"
 	"context"
 
@@ -10,7 +11,9 @@ import (
 type(
 	KelasRepository interface {
 			Create(ctx context.Context, tx *gorm.DB,class *entities.Kelas) (*entities.Kelas,error)
-			GetAll() ([]*entities.Kelas, error)
+			GetAll(ctx context.Context,
+				tx *gorm.DB,
+				req dto.PaginationRequest,) (dto.GetAllKelasRepoResponse, error)
 			GetById(ctx context.Context, tx *gorm.DB,id string)(*entities.Kelas, error)
 			Update(ctx context.Context, tx *gorm.DB,id string, class *entities.Kelas) (*entities.Kelas,error)
 			Delete(ctx context.Context, tx *gorm.DB,id string) error
@@ -23,13 +26,57 @@ type(
 func NewKelasRepository(db *gorm.DB) *kelasRepository {
 	return &kelasRepository{db}
 }
-func (repo *kelasRepository) GetAll() ([]*entities.Kelas, error) {
-	var kelas []*entities.Kelas
-	if err := repo.db.Find(&kelas).Error; err != nil {
-		return nil, err
+
+func (repo *kelasRepository) GetAll(ctx context.Context,
+	tx *gorm.DB, req dto.PaginationRequest,) (dto.GetAllKelasRepoResponse, error) {
+		if tx == nil {
+			tx = repo.db
+		}
+	var kelas []entities.Kelas
+	var err error
+	var count int64
+
+	req.Default()
+
+	query := tx.WithContext(ctx).Model(&entities.Kelas{})
+	if req.Search != "" {
+		query = query.Where("name LIKE ?", "%"+req.Search+"%")
 	}
-	return kelas, nil
+	if err := query.Count(&count).Error; err != nil {
+		return dto.GetAllKelasRepoResponse{}, err
+	}
+	if err := query.Scopes(Paginate(req)).Find(&kelas).Error; err != nil {
+		return dto.GetAllKelasRepoResponse{}, err
+	}
+	totalPage := TotalPage(count, int64(req.PerPage))
+	return dto.GetAllKelasRepoResponse{
+		Kelas: kelas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    req.Page,
+			PerPage: req.PerPage,
+			MaxPage: totalPage,
+			Count:   count,
+		},
+	},err
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 func (repo *kelasRepository) GetById(ctx context.Context, tx *gorm.DB,id string)(*entities.Kelas, error) {

@@ -10,7 +10,7 @@ import (
 type (
 	KelasService interface {
 		Create(ctx context.Context,kelas *dto.CreateKelasRequest) (*entities.Kelas, error)
-		GetAll() ([]*entities.Kelas, error)
+		GetAllKelasWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.KelasPaginationResponse, error)
 		GetById(ctx context.Context,id string) (*entities.Kelas, error)
 		Update(ctx context.Context,id string, kelas *dto.CreateKelasUpdateRequest) (*entities.Kelas,error)
 		Delete(ctx context.Context,id string) error
@@ -24,13 +24,78 @@ func NewKelasService(kelasRepo database.KelasRepository) KelasService {
 	return &kelasService{kelasRepo}
 }
 
-func (service *kelasService) GetAll() ([]*entities.Kelas, error) {
-	kelas, err := service.kelasRepo.GetAll()
+func (service *kelasService) GetAllKelasWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.KelasPaginationResponse, error) {
+	dataWithPaginate,err := service.kelasRepo.GetAll(ctx, nil, req)
 	if err != nil {
-		return nil,err
+		return dto.KelasPaginationResponse{}, err
 	}
-	return kelas, nil
+	var datas []dto.KelasResponse
+	for _, kelas := range dataWithPaginate.Kelas {
+		datas = append(datas, dto.KelasResponse{
+			ID:          kelas.ID,
+			Name:        kelas.Name,
+			Description: kelas.Description,
+			Teacher:     kelas.Teacher,
+			TeacherID:   kelas.TeacherID,
+		})
+	}
+	return dto.KelasPaginationResponse{
+		Data: datas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    dataWithPaginate.PaginationResponse.Page,
+			PerPage: dataWithPaginate.PaginationResponse.PerPage,
+			MaxPage: dataWithPaginate.PaginationResponse.MaxPage,
+			Count:   dataWithPaginate.PaginationResponse.Count,
+		},
+	}, nil
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 func (service *kelasService) GetById(ctx context.Context, id string) (*entities.Kelas, error) {
 	class, err := service.kelasRepo.GetById(ctx,nil, id)
@@ -43,6 +108,7 @@ func (service *kelasService) GetById(ctx context.Context, id string) (*entities.
 func (service *kelasService) Create(ctx context.Context,kelas *dto.CreateKelasRequest)(*entities.Kelas, error) {
 	kelasEntity := &entities.Kelas{
 		Name:        kelas.Name,
+		Tag:         kelas.Tag,
 		Description: kelas.Description,
 		Teacher:     kelas.Teacher,
 		TeacherID:   kelas.TeacherID,
