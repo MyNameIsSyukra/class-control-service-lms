@@ -14,5 +14,8 @@ type Kelas struct {
 
 	// one to many relationship with member
 	Members []Member `gorm:"foreignKey:Kelas_kelasID;references:ID"`
+
+	// one to many relationship with item pembelajaran
+	ItemPembelajaran []ItemPembelajaran `gorm:"foreignKey:Kelas_idKelas;references:ID"`
 }
 

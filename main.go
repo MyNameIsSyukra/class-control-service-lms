@@ -24,8 +24,16 @@ func args(db *gorm.DB) bool {
 			}
             return false
         }
+		if (os.Args[1] == "seed") {
+			print("Seeding Success")
+			err := migration.Seeder()
+			if err != nil {
+				log.Fatalf("error running seeder: %v", err)
+			}
+			return false
+		}
     }
-        return true
+    return true
 }
 
 
