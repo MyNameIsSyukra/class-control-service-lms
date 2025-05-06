@@ -10,15 +10,15 @@ import (
 
 func Member(server *gin.Engine, injector *do.Injector) {
 	memberController := do.MustInvoke[controller.MemberController](injector)
-	member := server.Group("/member")
+	member := server.Group("/member/admin")
 	{
 		member.POST("", memberController.AddMemberToClass)
 		member.DELETE("/:id", memberController.DeleteMember)
-		member.GET("/class/:classID", memberController.GetAllMembersByClassID)
 	}
-	member = server.Group("/student")
+	member = server.Group("/public")
 	{
-		member.GET("/class/user/:userID", memberController.GetAllClassAndAssesmentByUserID)
+		member.GET("class/members/:classID", memberController.GetAllMembersByClassIDData)
+		member.GET("/user/class/:userID", memberController.GetAllClassByUserID)
+		member.GET("/assessment/upcoming/:userID", memberController.GetAllClassAndAssesmentByUserID)
 	}
-
 }

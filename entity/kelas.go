@@ -10,7 +10,7 @@ type Kelas struct {
 	Tag 	  string `json:"tag"`
 	Description string `json:"description"`
 	Teacher     string `json:"teacher"`
-	TeacherID   int    `json:"teacher_id"`
+	TeacherID   uuid.UUID    `json:"teacher_id"`
 
 	// one to many relationship with member
 	Members []Member `gorm:"foreignKey:Kelas_kelasID;references:ID"`

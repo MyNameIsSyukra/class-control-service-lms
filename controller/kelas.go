@@ -70,7 +70,7 @@ func (service *kelasController) GetById(ctx *gin.Context) {
 
 func (service *kelasController) Update(ctx *gin.Context) {
 	id := ctx.Param("id")
-	var req dto.CreateKelasUpdateRequest
+	var req dto.KelasUpdateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, gin.H{"error": "Invalid request"})
 		return

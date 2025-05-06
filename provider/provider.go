@@ -20,7 +20,8 @@ func ProvideKelasDependency(injector *do.Injector){
 	db := do.MustInvokeNamed[*gorm.DB](injector, "db")
 
 	kelasRepository := repository.NewKelasRepository(db)
-	kelasService := service.NewKelasService(kelasRepository)
+	kelasRepositoryMember := repository.NewStudentRepository(db)
+	kelasService := service.NewKelasService(kelasRepository , kelasRepositoryMember)
 
 	do.Provide(injector, func(i *do.Injector) (controller.KelasController, error) {
 		return controller.NewKelasController(kelasService), nil
@@ -31,7 +32,8 @@ func ProvideMemberDependency(injector *do.Injector) {
 	db := do.MustInvokeNamed[*gorm.DB](injector, "db")
 
 	memberRepository := repository.NewStudentRepository(db)
-	memberService := service.NewMemberService(memberRepository)
+	memberRepositoryKelas := repository.NewKelasRepository(db)
+	memberService := service.NewMemberService(memberRepository, memberRepositoryKelas)
 
 	do.Provide(injector, func(i *do.Injector) (controller.MemberController, error) {
 		return controller.NewMemberController(memberService), nil

@@ -12,16 +12,18 @@ type (
 		Create(ctx context.Context,kelas *dto.CreateKelasRequest) (*entities.Kelas, error)
 		GetAllKelasWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.KelasPaginationResponse, error)
 		GetById(ctx context.Context,id string) (*entities.Kelas, error)
-		Update(ctx context.Context,id string, kelas *dto.CreateKelasUpdateRequest) (*entities.Kelas,error)
+		Update(ctx context.Context,id string, kelas *dto.KelasUpdateRequest) (*entities.Kelas,error)
 		Delete(ctx context.Context,id string) error
 	}
 
-	kelasService struct {kelasRepo database.KelasRepository
-}
+	kelasService struct {
+		kelasRepo database.KelasRepository
+		memberRepo database.StudentRepository
+	}
 )
 
-func NewKelasService(kelasRepo database.KelasRepository) KelasService {
-	return &kelasService{kelasRepo}
+func NewKelasService(kelasRepo database.KelasRepository, memberRepo database.StudentRepository) KelasService {
+	return &kelasService{kelasRepo, memberRepo}
 }
 
 func (service *kelasService) GetAllKelasWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.KelasPaginationResponse, error) {
@@ -51,52 +53,6 @@ func (service *kelasService) GetAllKelasWithPagination(ctx context.Context, req 
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 func (service *kelasService) GetById(ctx context.Context, id string) (*entities.Kelas, error) {
 	class, err := service.kelasRepo.GetById(ctx,nil, id)
 	if err != nil {
@@ -117,10 +73,27 @@ func (service *kelasService) Create(ctx context.Context,kelas *dto.CreateKelasRe
 	if err != nil {
 		return nil, err
 	}
+	// check if teacher already in class
+	checkTeacher, err := service.memberRepo.GetMemberByClassIDAndUserID(ctx, nil, class.ID, kelasEntity.TeacherID)
+	if err != nil {
+		return nil, err
+	}
+	if checkTeacher.Username == "" {
+		memberEntity := &entities.Member{
+			Username:      kelasEntity.Teacher,
+			Role:          entities.MemberRoleTeacher,
+			User_userID:   kelasEntity.TeacherID,
+			Kelas_kelasID: class.ID,
+		}
+		_, err := service.memberRepo.AddMemberToClass(ctx, nil, memberEntity)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return class, nil
 }
 
-func (service *kelasService) Update(ctx context.Context,id string, kelas *dto.CreateKelasUpdateRequest) (*entities.Kelas,error) {
+func (service *kelasService) Update(ctx context.Context,id string, kelas *dto.KelasUpdateRequest) (*entities.Kelas,error) {
 	clas,err := service.kelasRepo.GetById(ctx, nil, id)
 	if clas == nil {
 		return nil,err

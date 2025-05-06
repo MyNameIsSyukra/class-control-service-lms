@@ -5,6 +5,7 @@ import (
 	entities "LMSGo/entity"
 	"context"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +18,7 @@ type(
 			GetById(ctx context.Context, tx *gorm.DB,id string)(*entities.Kelas, error)
 			Update(ctx context.Context, tx *gorm.DB,id string, class *entities.Kelas) (*entities.Kelas,error)
 			Delete(ctx context.Context, tx *gorm.DB,id string) error
+			UpdateClassTeacherID(ctx context.Context, tx *gorm.DB, teacherId uuid.UUID, classID uuid.UUID, teacherName string) (*entities.Kelas,error)
 		}
 	kelasRepository struct {
 		db *gorm.DB
@@ -61,24 +63,6 @@ func (repo *kelasRepository) GetAll(ctx context.Context,
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 func (repo *kelasRepository) GetById(ctx context.Context, tx *gorm.DB,id string)(*entities.Kelas, error) {
 	var kelas entities.Kelas
 	if err := repo.db.Where("id = ?", id).Find(&kelas).Error; err != nil {
@@ -106,4 +90,11 @@ func (repo *kelasRepository) Delete(ctx context.Context, tx *gorm.DB,id string) 
 		return err
 	}
 	return nil
+}
+
+func (repo *kelasRepository) UpdateClassTeacherID(ctx context.Context, tx *gorm.DB, teacherId uuid.UUID, classID uuid.UUID, teacherName string) (*entities.Kelas,error) {
+	if err := repo.db.Where("id = ?", classID).Updates(&entities.Kelas{TeacherID: teacherId, Teacher: teacherName}).Error; err != nil {
+		return nil, err
+	}
+	return &entities.Kelas{TeacherID: teacherId, ID: classID}, nil	
 }

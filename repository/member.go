@@ -5,17 +5,20 @@ import (
 	entities "LMSGo/entity"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
 type(
 	StudentRepository interface {
-		AddStudentToClass(ctx context.Context, tx *gorm.DB, student *entities.Member) (*entities.Member, error) 
+		AddMemberToClass(ctx context.Context, tx *gorm.DB, student *entities.Member) (*entities.Member, error) 
 		GetAllMembersByClassID(ctx context.Context, tx *gorm.DB, classID uuid.UUID) ([]*entities.Member, error)
 		GetMemberById(ctx context.Context, tx *gorm.DB, id uuid.UUID) (*entities.Member, error)
 		// UpdateMember(ctx context.Context, tx *gorm.DB, id string, member *entities.Member) (*entities.Member, error)
@@ -36,7 +39,16 @@ func NewStudentRepository(db *gorm.DB) *studentRepository {
 	return &studentRepository{db}
 }
 
-func (repo *studentRepository) AddStudentToClass(ctx context.Context, tx *gorm.DB, student *entities.Member) (*entities.Member, error) {
+func (repo *studentRepository) AddMemberToClass(ctx context.Context, tx *gorm.DB, student *entities.Member) (*entities.Member, error) {
+	// Check if the member already exists in the class
+	// var flag bool = true
+	data, err := repo.GetMemberByClassIDAndUserID(ctx, nil, student.Kelas_kelasID, student.User_userID)
+	if err != nil {
+		return nil, err
+	}
+	if data.Username != "" {
+		return nil, errors.New("already In Class")
+	}
 	if err := repo.db.Create(student).Error; err != nil {
 		return nil, err
 	}
@@ -103,6 +115,12 @@ func (repo *studentRepository) GetAllClassByUserID(ctx context.Context, tx *gorm
 }
 
 func (repo *studentRepository) GetAllClassAndAssesmentByUserID(ctx context.Context, tx *gorm.DB, userID uuid.UUID) ([]dto.GetClassAndAssignmentResponse, error) {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	urlAssessmentService := os.Getenv("ASSESSMENT_SERVICE_URL")
+
 	listKelas, err := repo.GetAllClassByUserID(ctx, tx, userID)
 	if err != nil {
 		return nil, err
@@ -117,18 +135,19 @@ func (repo *studentRepository) GetAllClassAndAssesmentByUserID(ctx context.Conte
 		data.ClassDesc = kelas.Description
 		data.ClassTeacher = kelas.Teacher
 		data.ClassTeacherID = kelas.TeacherID
-		url := fmt.Sprintf("http://localhost:8080/api/v1/assessment/class/%s", kelas.ID)
+		url := fmt.Sprintf("%s/service/assessment/class/%s/%s",urlAssessmentService, kelas.ID,userID)
+		// Lakukan HTTP GET request ke URL
 		resp, err := http.Get(url)
 		if err != nil {
 			return nil, err
 		}
 		defer resp.Body.Close()
-
 		// Baca body response
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
 		}
+		// fmt.Print(body)
 
 		// Unmarshal JSON ke struct
 		var assessments []dto.AssessmentResponse
