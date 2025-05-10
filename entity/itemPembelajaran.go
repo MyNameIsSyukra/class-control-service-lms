@@ -1,21 +1,26 @@
 package entities
 
 import (
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ItemPembelajaran struct{
 	gorm.Model
-	IdItemPembelajaran int `json:"idItemPembelajaran"`
 	HeadingPertemuan string `json:"headingPertemuan"`
 	BodyPertemuan string `json:"bodyPertemuan"`
-	FileName string `json:"fileName"`
-	FilePath string `json:"filePath"`
 	UrlVideo string `json:"urlVideo"`
-	Kelas_idKelas uuid.UUID `json:"kelas_idKelas"`
+	WeekID int `json:"week_id"`
+	FileName string `json:"fileName"`
+	LinkFile string `json:"linkFile"`
+	
+	// relationship with Week
+	Week Week `gorm:"foreignKey:WeekID" json:"week"`
 
+	// Kelas_idKelas uuid.UUID `json:"kelas_idKelas"`
 	// Relationship with Kelas
-	Kelas Kelas `gorm:"foreignKey:Kelas_idKelas" json:"-"`
+	// Kelas Kelas `gorm:"foreignKey:Kelas_idKelas" json:"-"`
 }
 
+
+// FileName string `json:"fileName"`
+// FilePath string `json:"filePath"`

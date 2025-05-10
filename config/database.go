@@ -10,11 +10,13 @@ import (
 )
 
 func SetUpDatabaseConnection() *gorm.DB {
-	err := godotenv.Load()
+	// if os.Getenv("APP_ENV") != constants.ENUM_RUN_PRODUCTION {
+	// }
+	
+	err := godotenv.Load(".env")
 	if err != nil {
 		panic(err)
 	}
-
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 	dbHost := os.Getenv("DB_HOST")
@@ -22,10 +24,16 @@ func SetUpDatabaseConnection() *gorm.DB {
 	dbPort := os.Getenv("DB_PORT")
 
 	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v", dbHost, dbUser, dbPass, dbName, dbPort)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-    if err != nil {
-        panic("failed to connect database")
-    }
+
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol: true,
+	}), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+
+	// RunExtension(db)
 
 	return db
 }

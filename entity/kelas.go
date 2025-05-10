@@ -15,7 +15,10 @@ type Kelas struct {
 	// one to many relationship with member
 	Members []Member `gorm:"foreignKey:Kelas_kelasID;references:ID"`
 
+	// one to many relationship with week
+	Weeks []Week `gorm:"foreignKey:Kelas_idKelas;references:ID"`
+	// unused for now
 	// one to many relationship with item pembelajaran
-	ItemPembelajaran []ItemPembelajaran `gorm:"foreignKey:Kelas_idKelas;references:ID"`
+	// ItemPembelajaran []ItemPembelajaran `gorm:"foreignKey:Kelas_idKelas;references:ID"`
 }
 

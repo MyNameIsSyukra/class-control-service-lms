@@ -3,11 +3,11 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile
-    container_name: ${APP_NAME:-go-gin-clean-starter}-app
+    container_name: ${APP_NAME:class-control-service-lms}-app
     volumes:
       - .:/app
     ports:
-      - ${GOLANG_PORT:-8888}:8888
+      - ${GOLANG_PORT:-8888}:8081
     networks:
       - app-network
 

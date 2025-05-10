@@ -44,13 +44,12 @@ func Seeder()error{
 
 	// Seeder: ItemPembelajaran
 	item := entities.ItemPembelajaran{
-		IdItemPembelajaran: i,
 		HeadingPertemuan:   fmt.Sprintf("Pertemuan %d: Array", i),
 		BodyPertemuan:      "Penjelasan tentang array dan implementasinya dalam bahasa C",
-		FileName:           "array.pdf",
-		FilePath:           "/files/array.pdf",
+		// FileName:           "array.pdf",
+		// FilePath:           "/files/array.pdf",
 		UrlVideo:           "https://youtu.be/strukturdata1",
-		Kelas_idKelas:      kelasUUID, 
+		// Kelas_idKelas:      kelasUUID, 
 	}
 	db.Create(&item)
 }
