@@ -8,5 +8,6 @@ import (
 func RegisterRoutes(server *gin.Engine, injector *do.Injector) {
 	Kelas(server, injector)
 	Member(server, injector)	
-	Service(server, injector)	
+	Service(server, injector)
+	WeekSection(server, injector)	
 }

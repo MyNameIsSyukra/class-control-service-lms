@@ -1,26 +1,16 @@
 package entities
 
-import (
-	"gorm.io/gorm"
-)
-
-type ItemPembelajaran struct{
-	gorm.Model
+type ItemPembelajaran struct {
+	WeekID           int    `json:"id"` // same as Week.ID
 	HeadingPertemuan string `json:"headingPertemuan"`
-	BodyPertemuan string `json:"bodyPertemuan"`
-	UrlVideo string `json:"urlVideo"`
-	WeekID int `json:"week_id"`
-	FileName string `json:"fileName"`
-	LinkFile string `json:"linkFile"`
-	
-	// relationship with Week
-	Week Week `gorm:"foreignKey:WeekID" json:"week"`
+	BodyPertemuan    string `json:"bodyPertemuan"`
+	UrlVideo         string `json:"urlVideo"`
+	FileName         string `json:"fileName"`
+	FileLink         string `json:"linkFile"`
 
-	// Kelas_idKelas uuid.UUID `json:"kelas_idKelas"`
-	// Relationship with Kelas
-	// Kelas Kelas `gorm:"foreignKey:Kelas_idKelas" json:"-"`
+	// one-to-one with Week
+	Week *Week `gorm:"foreignKey:WeekID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"week"`
 }
-
 
 // FileName string `json:"fileName"`
 // FilePath string `json:"filePath"`

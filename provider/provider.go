@@ -40,9 +40,19 @@ func ProvideMemberDependency(injector *do.Injector) {
 	})
 }
 
+func ProvideWeekDependency(injector *do.Injector) {
+	db := do.MustInvokeNamed[*gorm.DB](injector, "db")
+	weekRepository := repository.NewWeekRepository(db)
+	weekService := service.NewWeekService(weekRepository)
+	do.Provide(injector, func(i *do.Injector) (controller.WeekController, error) {
+		return controller.NewWeekController(weekService), nil
+	})
+}
+
 func RegisterProviders(injector *do.Injector) {
 	InitDatabase(injector)
 	ProvideKelasDependency(injector)
 	ProvideMemberDependency(injector)
+	ProvideWeekDependency(injector)
 }
 
