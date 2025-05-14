@@ -11,7 +11,7 @@ import (
 type (
 	AssignmentRepository interface {
 		// GetAllAssignmentByClassID(ctx context.Context, tx *gorm.DB, classID uuid.UUID) ([]*entities.Assignment, error)
-		// GetAssignmentByID(ctx context.Context, tx *gorm.DB, assignmentID int) (*entities.Assignment, error)
+		GetAssignmentByID(ctx context.Context, tx *gorm.DB, assignmentID int) (*entities.Assignment, error)
 		CreateAssignment(ctx context.Context, tx *gorm.DB, assignmentReq dto.CreateAssignmentRequest) (*entities.Assignment, error)
 		// DeleteAssignment(ctx context.Context, tx *gorm.DB, assignmentID int) error
 		// UpdateAssignment(ctx context.Context, tx *gorm.DB, assignmentID int, assignmentReq dto.AssignmentRequest) (*entities.Assignment, error)
@@ -36,6 +36,14 @@ func (repo *assignmentRepository) CreateAssignment(ctx context.Context, tx *gorm
 	assignment.FileLink = assignmentReq.FileLink
 
 	if err := repo.db.Create(&assignment).Error; err != nil {
+		return nil, err
+	}
+	return &assignment, nil
+}
+
+func (repo *assignmentRepository) GetAssignmentByID(ctx context.Context, tx *gorm.DB, assignmentID int) (*entities.Assignment, error) {
+	var assignment entities.Assignment
+	if err := repo.db.Where("id = ?", assignmentID).First(&assignment).Error; err != nil {
 		return nil, err
 	}
 	return &assignment, nil

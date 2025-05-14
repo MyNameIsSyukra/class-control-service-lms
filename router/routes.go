@@ -11,4 +11,5 @@ func RegisterRoutes(server *gin.Engine, injector *do.Injector) {
 	Service(server, injector)
 	WeekSection(server, injector)	
 	Assignment(server, injector)
+	AssignmentSubmission(server, injector)
 }

@@ -4,6 +4,7 @@ import (
 	"LMSGo/dto"
 	Assignment "LMSGo/service"
 	"LMSGo/utils"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,6 +12,7 @@ import (
 type (
 	AssignmentController interface {
 		CreateAssignment(ctx *gin.Context)
+		GetAssignmentByID(ctx *gin.Context)
 	}
 	assignmentController struct {
 		assignmentService Assignment.AssignmentService
@@ -30,6 +32,25 @@ func (controller *assignmentController) CreateAssignment(ctx *gin.Context) {
 	}
 
 	assignment, err := controller.assignmentService.CreateAssignment(ctx.Request.Context(), req)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(500, res)
+		return
+	}
+	res := utils.SuccessResponse(assignment)
+	ctx.JSON(200, res)
+}
+
+func (controller *assignmentController) GetAssignmentByID(ctx *gin.Context) {
+	assignmentID := ctx.Param("assignment_id")
+	parsedAssignmentID, err := strconv.Atoi(assignmentID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+
+	assignment, err := controller.assignmentService.GetAssignmentByID(ctx.Request.Context(), parsedAssignmentID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(500, res)
