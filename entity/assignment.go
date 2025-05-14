@@ -17,7 +17,7 @@ type Assignment struct {
 	WeekID          int            `json:"id"` // same as Week.ID
 
 	// one-to-one with Week
-	Week *Week `gorm:"foreignKey:WeekID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"week"`
+	Week *Week `gorm:"foreignKey:WeekID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"week,omitempty"`
 
-	Submissions []AssignmentSubmission `gorm:"foreignKey:AssignmentID;references:ID" json:"submissions"`
+	Submissions []AssignmentSubmission `gorm:"foreignKey:AssignmentID;references:ID" json:"submissions,omitempty"`
 }

@@ -1,0 +1,17 @@
+package routes
+
+import (
+	"LMSGo/controller"
+
+	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
+) 
+
+func Assignment(route *gin.Engine, injector *do.Injector) {
+	assignmentController := do.MustInvoke[controller.AssignmentController](injector)
+
+	routes := route.Group("teacher/kelas")
+	{
+		routes.POST("/assignment", assignmentController.CreateAssignment)
+	}
+}

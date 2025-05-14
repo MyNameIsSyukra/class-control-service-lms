@@ -1,6 +1,10 @@
 package repository
 
 import (
+	"LMSGo/dto"
+	entities "LMSGo/entity"
+	"context"
+
 	"gorm.io/gorm"
 )
 
@@ -8,7 +12,7 @@ type (
 	AssignmentRepository interface {
 		// GetAllAssignmentByClassID(ctx context.Context, tx *gorm.DB, classID uuid.UUID) ([]*entities.Assignment, error)
 		// GetAssignmentByID(ctx context.Context, tx *gorm.DB, assignmentID int) (*entities.Assignment, error)
-		// CreateAssignment(ctx context.Context, tx *gorm.DB, assignmentReq dto.AssignmentRequest) (*entities.Assignment, error)
+		CreateAssignment(ctx context.Context, tx *gorm.DB, assignmentReq dto.CreateAssignmentRequest) (*entities.Assignment, error)
 		// DeleteAssignment(ctx context.Context, tx *gorm.DB, assignmentID int) error
 		// UpdateAssignment(ctx context.Context, tx *gorm.DB, assignmentID int, assignmentReq dto.AssignmentRequest) (*entities.Assignment, error)
 		// GetAssignmentByWeekID(ctx context.Context, tx *gorm.DB, weekID int) ([]*entities.Assignment, error)
@@ -20,4 +24,19 @@ type (
 
 func NewAssignmentRepository(db *gorm.DB) *assignmentRepository {
 	return &assignmentRepository{db}
+}
+
+func (repo *assignmentRepository) CreateAssignment(ctx context.Context, tx *gorm.DB, assignmentReq dto.CreateAssignmentRequest) (*entities.Assignment, error) {
+	var assignment entities.Assignment
+	assignment.Title = assignmentReq.Title
+	assignment.Description = assignmentReq.Description
+	assignment.Deadline = assignmentReq.Deadline
+	assignment.WeekID = assignmentReq.WeekID
+	assignment.FileName = assignmentReq.FileName
+	assignment.FileLink = assignmentReq.FileLink
+
+	if err := repo.db.Create(&assignment).Error; err != nil {
+		return nil, err
+	}
+	return &assignment, nil
 }

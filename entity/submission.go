@@ -18,7 +18,7 @@ type AssignmentSubmission struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 
-	Assignment Assignment `gorm:"foreignKey:AssignmentID;references:ID" json:"assignment"`
+	Assignment Assignment `gorm:"foreignKey:AssignmentID;references:ID" json:"assignment,omitempty"`
 }
 
 
