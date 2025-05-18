@@ -13,7 +13,7 @@ type Kelas struct {
 	TeacherID   uuid.UUID    `json:"teacher_id"`
 
 	// one to many relationship with member
-	Members []Member `gorm:"foreignKey:Kelas_kelasID;references:ID"`
+	Members []Member `gorm:"foreignKey:Kelas_kelasID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	// one to many relationship with week
 	Weeks []Week `gorm:"foreignKey:Kelas_idKelas;references:ID"`

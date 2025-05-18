@@ -17,7 +17,7 @@ type Member struct {
 	UpdatedAt time.Time	`json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 
-	Kelas Kelas `gorm:"foreignKey:Kelas_kelasID" json:"-"`
+	Kelas Kelas `gorm:"foreignKey:Kelas_kelasID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 }
 
 const (

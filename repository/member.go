@@ -58,7 +58,7 @@ func (repo *studentRepository) AddMemberToClass(ctx context.Context, tx *gorm.DB
 func (repo *studentRepository) GetAllMembersByClassID(ctx context.Context, tx *gorm.DB, classID uuid.UUID) ([]*entities.Member, error) {
 	var members []*entities.Member
 	if err := repo.db.Where("kelas_kelas_id = ?", classID).Find(&members).Error; err != nil {
-		return nil, err
+		return []*entities.Member{}, err
 	}
 	return members, nil
 }
@@ -66,7 +66,7 @@ func (repo *studentRepository) GetAllMembersByClassID(ctx context.Context, tx *g
 func (repo *studentRepository) GetMemberById(ctx context.Context, tx *gorm.DB, id uuid.UUID) (*entities.Member, error) {
 	var member entities.Member
 	if err := repo.db.Where("id = ?", id).Find(&member).Error; err != nil {
-		return nil, err
+		return &entities.Member{}, err
 	}
 	return &member, nil
 }
@@ -74,7 +74,7 @@ func (repo *studentRepository) GetMemberById(ctx context.Context, tx *gorm.DB, i
 func (repo *studentRepository) GetMemberByClassIDAndUserID(ctx context.Context, tx *gorm.DB, classID uuid.UUID, userID uuid.UUID) (*entities.Member, error) {
 	var member entities.Member
 	if err := repo.db.Where("kelas_kelas_id = ? AND user_user_id = ?", classID, userID).Find(&member).Error; err != nil {
-		return nil, err
+		return &entities.Member{}, err
 	}
 	return &member, nil
 }
@@ -102,7 +102,7 @@ func (repo *studentRepository) GetAllClassByUserID(ctx context.Context, tx *gorm
 		Where("user_user_id = ?", userID).
 		Find(&members).Error
 	if err != nil {
-		return nil, err
+		return []entities.Kelas{}, err
 	}
 
 	// Ambil semua kelas dari member
@@ -153,7 +153,7 @@ func (repo *studentRepository) GetAllClassAndAssesmentByUserID(ctx context.Conte
 		var assessments []dto.AssessmentResponse
 		err = json.Unmarshal(body, &assessments)
 		if err != nil {
-			return nil, err
+			assessments = nil
 		}
 		data.ClassAssessment = assessments
 		datas = append(datas, data)

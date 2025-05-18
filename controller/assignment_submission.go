@@ -4,6 +4,7 @@ import (
 	"LMSGo/dto"
 	Assignment "LMSGo/service"
 	"LMSGo/utils"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 type (
 	AssignmentSubmissionController interface {
 		CreateAssignmentSubmission(ctx *gin.Context)
+		GetAllStudentAssignmentSubmissionByAssignmentID(ctx *gin.Context)
 	}
 	assignmentSubmissionController struct {
 		assignmentSubmissionService Assignment.AssignmentSubmissionService
@@ -29,21 +31,31 @@ func (controller *assignmentSubmissionController) CreateAssignmentSubmission(ctx
 		ctx.JSON(400, res)
 		return
 	}
+	assignmentSubmission, err := controller.assignmentSubmissionService.CreateAssignmentSubmission(ctx.Request.Context(), req)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.SuccessResponse(assignmentSubmission)
+	ctx.JSON(200, res)
+}
 
-	assignmentID := ctx.Param("assignment_id")
+func (controller *assignmentSubmissionController) GetAllStudentAssignmentSubmissionByAssignmentID(ctx *gin.Context) {
+	assignmentID := ctx.Query("assignment_id")
 	parsedAssignmentID, err := strconv.Atoi(assignmentID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(400, res)
 		return
 	}
-	req.AssignmentID = parsedAssignmentID
-	assignmentSubmission, err := controller.assignmentSubmissionService.CreateAssignmentSubmission(ctx.Request.Context(), req)
+	submissions, err := controller.assignmentSubmissionService.GetAllStudentAssignmentSubmissionByAssignmentID(ctx.Request.Context(), parsedAssignmentID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
-		ctx.JSON(500, res)
+		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
-	res := utils.SuccessResponse(assignmentSubmission)
+	res := utils.SuccessResponse(submissions)
 	ctx.JSON(200, res)
 }
+

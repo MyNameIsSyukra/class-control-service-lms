@@ -44,7 +44,7 @@ func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.We
 		WeekNumber:       week.WeekNumber,
 		KelasID:          week.Kelas_idKelas,
 		ItemPembelajarans: &week.ItemPembelajaran,
-		Assignment:        &week.Assignment,
+		Assignment:       week.Assignment,
 	}
 	if week.Assignment.Title == "" {
 		resp.Assignment = nil
@@ -67,6 +67,7 @@ func (service *weekService) CreateWeeklySection(ctx context.Context, request dto
 	newItem := &entities.ItemPembelajaran{
 		WeekID: newWeek.ID,
 		HeadingPertemuan: request.HeadingPertemuan,
+		BodyPertemuan: request.BodyPertemuan,
 		UrlVideo: request.UrlVideo,
 		FileName: request.FileName,
 		FileLink: request.FileLink,

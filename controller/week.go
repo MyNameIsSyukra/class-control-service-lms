@@ -44,7 +44,7 @@ func (controller *weekController) CreateWeeklySection(ctx *gin.Context) {
 }
 
 func (controller *weekController) GetAllWeekByClassID(ctx *gin.Context) {
-	classID := ctx.Param("class_id")
+	classID := ctx.Query("class_id")
 	parsedClassID, err := uuid.Parse(classID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
@@ -63,7 +63,7 @@ func (controller *weekController) GetAllWeekByClassID(ctx *gin.Context) {
 }
 
 func (controller *weekController) GetWeekByID(ctx *gin.Context) {
-	weekID := ctx.Param("id")
+	weekID := ctx.Query("id")
 	weekIDInt, err := strconv.Atoi(weekID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())

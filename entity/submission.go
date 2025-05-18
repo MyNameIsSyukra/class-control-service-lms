@@ -13,13 +13,24 @@ type AssignmentSubmission struct {
 	UserID       uuid.UUID      `gorm:"type:uuid" json:"user_id"`
 	IDFile       string         `json:"id_file"`
 	Score        int            `json:"score"`
+	Status  	AssStatus      `json:"status"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 
-	Assignment Assignment `gorm:"foreignKey:AssignmentID;references:ID" json:"assignment,omitempty"`
+	Assignment *Assignment `gorm:"foreignKey:AssignmentID;references:ID" json:"assignment,omitempty"`
 }
+
+
+type AssStatus string
+
+
+const (
+	StatusLate AssStatus = "Late"
+	StatusSubmitted  AssStatus = "submitted"
+	StatusTodo 	 AssStatus = "todo"
+)
 
 
 // type AssignmentSubmission struct {

@@ -16,7 +16,7 @@ type(
 				tx *gorm.DB,
 				req dto.PaginationRequest,) (dto.GetAllKelasRepoResponse, error)
 			GetById(ctx context.Context, tx *gorm.DB,id string)(*entities.Kelas, error)
-			Update(ctx context.Context, tx *gorm.DB,id string, class *entities.Kelas) (*entities.Kelas,error)
+			Update(ctx context.Context, tx *gorm.DB, class *entities.Kelas) (*entities.Kelas,error)
 			Delete(ctx context.Context, tx *gorm.DB,id string) error
 			UpdateClassTeacherID(ctx context.Context, tx *gorm.DB, teacherId uuid.UUID, classID uuid.UUID, teacherName string) (*entities.Kelas,error)
 		}
@@ -66,7 +66,7 @@ func (repo *kelasRepository) GetAll(ctx context.Context,
 func (repo *kelasRepository) GetById(ctx context.Context, tx *gorm.DB,id string)(*entities.Kelas, error) {
 	var kelas entities.Kelas
 	if err := repo.db.Where("id = ?", id).Find(&kelas).Error; err != nil {
-		return nil, err
+		return &entities.Kelas{}, err
 	}
 	return &kelas, nil
 }
@@ -78,8 +78,8 @@ func (repo *kelasRepository) Create(ctx context.Context, tx *gorm.DB,class *enti
 	return class, nil
 }
 
-func (repo *kelasRepository) Update(ctx context.Context, tx *gorm.DB,id string, class *entities.Kelas) (*entities.Kelas,error) {
-	if err := repo.db.Where("id = ?", id).Updates(class).Error; err != nil {
+func (repo *kelasRepository) Update(ctx context.Context, tx *gorm.DB, class *entities.Kelas) (*entities.Kelas,error) {
+	if err := repo.db.Where("id = ?", class.ID).Updates(class).Error; err != nil {
 		return nil, err
 	}
 	return class, nil

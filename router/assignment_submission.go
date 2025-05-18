@@ -14,8 +14,8 @@ func AssignmentSubmission(route *gin.Engine, injector *do.Injector) {
 	{
 		routes.POST("/assignment-submission", assignmentSubmissionController.CreateAssignmentSubmission)
 	}
-	// routes = route.Group("/kelas")
-	// {
-	// 	routes.GET("/assignment-submission/:id", assignmentSubmissionController.GetAssignmentSubmissionByID)
-	// }
+	routes = route.Group("/kelas")
+	{
+		routes.GET("/assignment-submission/", assignmentSubmissionController.GetAllStudentAssignmentSubmissionByAssignmentID)
+	}
 }

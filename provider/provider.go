@@ -61,7 +61,9 @@ func ProvideAssignmentDependency(injector *do.Injector) {
 func ProvideAssignmentSubmissionDependency(injector *do.Injector) {
 	db := do.MustInvokeNamed[*gorm.DB](injector, "db")
 	assignmentSubmissionRepository := repository.NewAssignmentSubmissionRepository(db)
-	assignmentSubmissionService := service.NewAssignmentSubmissionService(assignmentSubmissionRepository)
+	assignmentRepository := repository.NewAssignmentRepository(db)
+	memberRepository := repository.NewStudentRepository(db)
+	assignmentSubmissionService := service.NewAssignmentSubmissionService(assignmentSubmissionRepository, memberRepository, assignmentRepository)
 	do.Provide(injector, func(i *do.Injector) (controller.AssignmentSubmissionController, error) {
 		return controller.NewAssignmentSubmissionController(assignmentSubmissionService), nil
 	})

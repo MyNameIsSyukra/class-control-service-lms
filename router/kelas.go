@@ -10,15 +10,15 @@ import (
 func Kelas(route *gin.Engine, injector *do.Injector){
 	kelasController := do.MustInvoke[controller.KelasController](injector)
 
-	routes := route.Group("/kelas/admin")
+	routes := route.Group("/kelas")
+	{
+		routes.GET("/", kelasController.GetById)
+	}
+	routes = route.Group("/kelas/admin")
 	{
 		routes.POST("", kelasController.Create)
 		routes.GET("", kelasController.GetAll)
-		routes.PUT("/:id", kelasController.Update)
-		routes.DELETE("/:id", kelasController.Delete)
-	}
-	routes = route.Group("/kelas")
-	{
-		routes.GET("/:id", kelasController.GetById)
+		routes.PUT("/", kelasController.Update)
+		routes.DELETE("/", kelasController.Delete)
 	}
 }

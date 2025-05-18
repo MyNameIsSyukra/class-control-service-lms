@@ -52,7 +52,7 @@ func (controller *memberController) AddMemberToClass(ctx *gin.Context) {
 
 
 func (controller *memberController) DeleteMember(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Query("id")
 	// Assuming id is a UUID, you might want to parse it here
 	parsedID, err := uuid.Parse(id)
 	if err != nil {
@@ -69,7 +69,7 @@ func (controller *memberController) DeleteMember(ctx *gin.Context) {
 }
 
 func (controller *memberController) GetAllClassAndAssesmentByUserID(ctx *gin.Context) {
-	userID := ctx.Param("userID")
+	userID := ctx.Query("userID")
 	// Assuming userID is a UUID, you might want to parse it here
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
@@ -88,7 +88,7 @@ func (controller *memberController) GetAllClassAndAssesmentByUserID(ctx *gin.Con
 }
 
 func (controller *memberController) GetAllClassByUserID(ctx *gin.Context) {
-	userID := ctx.Param("userID")
+	userID := ctx.Query("userID")
 	// Assuming userID is a UUID, you might want to parse it here
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
@@ -107,7 +107,7 @@ func (controller *memberController) GetAllClassByUserID(ctx *gin.Context) {
 }
 
 func (controller *memberController) GetAllMembersByClassIDData(ctx *gin.Context) {
-	classID,err := uuid.Parse(ctx.Param("classID"))
+	classID,err := uuid.Parse(ctx.Query("classID"))
 	if err != nil {
 		res := utils.FailedResponse("Invalid class ID format")
 		ctx.JSON(400, res)
@@ -127,7 +127,7 @@ func (controller *memberController) GetAllMembersByClassIDData(ctx *gin.Context)
 
 // lintas Servicelintas Servicelintas Servicelintas Servicelintas Servicelintas Servicelintas Servicelintas Servicelintas Service
 func (controller *memberController) GetAllMembersByClassID(ctx *gin.Context) {
-	classID,err := uuid.Parse(ctx.Param("classID"))
+	classID,err := uuid.Parse(ctx.Query("classID"))
 	if err != nil {
 		res := utils.FailedResponse("Invalid class ID format")
 		ctx.JSON(400, res)

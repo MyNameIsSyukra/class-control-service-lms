@@ -10,7 +10,7 @@ import (
 type (
 	AssignmentService interface {
 		CreateAssignment(ctx context.Context, request dto.CreateAssignmentRequest) (*entities.Assignment, error)
-		GetAssignmentByID(ctx context.Context, assignmentID int) (*entities.Assignment, error)
+		GetAssignmentByID(ctx context.Context, assignmentID int) (entities.Assignment, error)
 	}
 	assignmentService struct {
 		assignmentRepo repository.AssignmentRepository
@@ -29,10 +29,10 @@ func (service *assignmentService) CreateAssignment(ctx context.Context, request 
 	return newAssignment, nil
 }
 
-func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignmentID int) (*entities.Assignment, error) {
+func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignmentID int) (entities.Assignment, error) {
 	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, assignmentID)
 	if err != nil {
-		return &entities.Assignment{}, err
+		return entities.Assignment{}, err
 	}
 	return assignment, nil
 }

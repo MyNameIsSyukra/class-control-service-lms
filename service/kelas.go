@@ -99,13 +99,15 @@ func (service *kelasService) Update(ctx context.Context,id string, kelas *dto.Ke
 		return nil,err
 	}
 	classEntity := &entities.Kelas{
+		ID:          clas.ID,
 		Name:        kelas.Name,
+		Tag:         kelas.Tag,
 		Description: kelas.Description,
 		Teacher:     kelas.Teacher,
 		TeacherID:   kelas.TeacherID,
 	}
 
-	data, err := service.kelasRepo.Update(ctx, nil, id, classEntity); 
+	data, err := service.kelasRepo.Update(ctx, nil,classEntity); 
 	if err != nil {
 		return nil, err
 	}
