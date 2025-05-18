@@ -52,7 +52,8 @@ func ProvideWeekDependency(injector *do.Injector) {
 func ProvideAssignmentDependency(injector *do.Injector) {
 	db := do.MustInvokeNamed[*gorm.DB](injector, "db")
 	assignmentRepository := repository.NewAssignmentRepository(db)
-	assignmentService := service.NewAssignmentService(assignmentRepository)
+	assignmentSubmissionRepository := repository.NewAssignmentSubmissionRepository(db)
+	assignmentService := service.NewAssignmentService(assignmentRepository, assignmentSubmissionRepository)
 	do.Provide(injector, func(i *do.Injector) (controller.AssignmentController, error) {
 		return controller.NewAssignmentController(assignmentService), nil
 	})

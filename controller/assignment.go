@@ -8,12 +8,16 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type (
 	AssignmentController interface {
 		CreateAssignment(ctx *gin.Context)
 		GetAssignmentByID(ctx *gin.Context)
+
+		// student
+		GetAssignmentByIDStudentID(ctx *gin.Context)
 	}
 	assignmentController struct {
 		assignmentService Assignment.AssignmentService
@@ -52,6 +56,34 @@ func (controller *assignmentController) GetAssignmentByID(ctx *gin.Context) {
 	}
 
 	assignment, err := controller.assignmentService.GetAssignmentByID(ctx.Request.Context(), parsedAssignmentID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.SuccessResponse(assignment)
+	ctx.JSON(200, res)
+}
+
+// student
+
+func (controller *assignmentController) GetAssignmentByIDStudentID(ctx *gin.Context) {
+	assignmentID := ctx.Query("assignment_id")
+	userID := ctx.Query("user_id")
+	parsedAssignmentID, err := strconv.Atoi(assignmentID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+	parsedUserID, err := uuid.Parse(userID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+
+	assignment, err := controller.assignmentService.GetAssignmentByIDStudentID(ctx.Request.Context(), parsedAssignmentID, parsedUserID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(http.StatusBadRequest, res)

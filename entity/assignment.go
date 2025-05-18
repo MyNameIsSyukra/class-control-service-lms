@@ -13,8 +13,8 @@ type Assignment struct {
 	Deadline    time.Time      `json:"deadline"`
 	FileName    string         `json:"file_name"`
 	FileLink    string         `json:"path_file"`
+	WeekID          int            `json:"WeekdID"` // same as Week.ID
 	
-	WeekID          int            `json:"id"` // same as Week.ID
 
 	// one-to-one with Week
 	Week *Week `gorm:"foreignKey:WeekID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`

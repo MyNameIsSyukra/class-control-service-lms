@@ -127,7 +127,7 @@ func (controller *memberController) GetAllMembersByClassIDData(ctx *gin.Context)
 
 // lintas Servicelintas Servicelintas Servicelintas Servicelintas Servicelintas Servicelintas Servicelintas Servicelintas Service
 func (controller *memberController) GetAllMembersByClassID(ctx *gin.Context) {
-	classID,err := uuid.Parse(ctx.Query("classID"))
+	classID,err := uuid.Parse(ctx.Param("classID"))
 	if err != nil {
 		res := utils.FailedResponse("Invalid class ID format")
 		ctx.JSON(400, res)

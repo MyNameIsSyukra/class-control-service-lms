@@ -6,13 +6,16 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type (
 	AssignmentSubmissionRepository interface {
+		// student
 		CreateAssignmentSubmission(ctx context.Context, tx *gorm.DB, assignmentSubmissionReq dto.AssignmentSubmissionRequest) (*entities.AssignmentSubmission, error)
-		
+		CheckStudentSubmssionByAssIdUserID(ctx context.Context, tx *gorm.DB,assignmentId int, userID uuid.UUID) (entities.AssStatus,int, error)
+
 		// teacher
 		GetAllSubmissionByAssignmentID(ctx context.Context, tx *gorm.DB, assignmentID int) ([]*entities.AssignmentSubmission, error)
 	}
@@ -50,6 +53,7 @@ func (repo *assignmentSubmissionRepository) CreateAssignmentSubmission(ctx conte
 		AssignmentID: assignmentSubmission.AssignmentID,
 		UserID:       assignmentSubmission.UserID,
 		IDFile:       assignmentSubmission.IDFile,
+		Status: 	 assignmentSubmission.Status,
 		CreatedAt:     assignmentSubmission.CreatedAt,
 		UpdatedAt:     assignmentSubmission.UpdatedAt,
 		Assignment: nil,
@@ -63,5 +67,16 @@ func (repo *assignmentSubmissionRepository) GetAllSubmissionByAssignmentID(ctx c
 		return []*entities.AssignmentSubmission{}, err
 	}
 	return assignmentSubmissions, nil
+}
+
+func (repo *assignmentSubmissionRepository) CheckStudentSubmssionByAssIdUserID(ctx context.Context, tx *gorm.DB,assignmentId int, userID uuid.UUID) (entities.AssStatus,int, error) {
+	var assignmentSubmissions entities.AssignmentSubmission
+	if err := repo.db.Where("assignment_id = ? AND user_id = ?",assignmentId, userID).Find(&assignmentSubmissions).Error; err != nil {
+		return entities.StatusTodo, 0, err
+	}
+	if assignmentSubmissions.Status == "" {
+		return entities.StatusTodo, 0, nil
+	}
+	return assignmentSubmissions.Status,assignmentSubmissions.Score, nil
 }
 

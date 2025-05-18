@@ -45,7 +45,7 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 		return nil, err
 	}
 	
-	// fmt.Println("submissionMap", assignment.Week.Kelas_idKelas)
+	fmt.Println("submissionMap", assignment.Week.Kelas_idKelas)
 	members, err := service.memberRepo.GetAllMembersByClassID(ctx, nil, assignment.Week.Kelas_idKelas)
 	if err != nil {
 		return nil, err
