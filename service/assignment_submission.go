@@ -16,6 +16,7 @@ type (
 
 		// teacher
 		GetAllStudentAssignmentSubmissionByAssignmentID(ctx context.Context, assignmentID int) ([]dto.GetAssSubmissionStudentResponse, error)
+		UpdateStudentSubmissionScore(ctx context.Context, score int, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error)
 	}
 	assignmentSubmissionService struct {
 		assignmentSubmissionRepo repository.AssignmentSubmissionRepository
@@ -28,11 +29,29 @@ func NewAssignmentSubmissionService(assignmentSubmissionRepo repository.Assignme
 	return &assignmentSubmissionService{assignmentSubmissionRepo, memberRepo, assigmentRepo}
 }
 func (service *assignmentSubmissionService) CreateAssignmentSubmission(ctx context.Context, request dto.AssignmentSubmissionRequest) (*entities.AssignmentSubmission, error) {
+	// check if the user has submitted the assignment
+	assStatus, _, err := service.assignmentSubmissionRepo.CheckStudentSubmssionByAssIdUserID(ctx, nil, request.AssignmentID, request.UserID)
+	if err != nil {
+		return &entities.AssignmentSubmission{}, err
+	}
+	if assStatus == entities.StatusSubmitted || assStatus == entities.StatusLate {
+		return &entities.AssignmentSubmission{}, fmt.Errorf("you have submitted this assignment")
+	}
 	newAssignmentSubmission, err := service.assignmentSubmissionRepo.CreateAssignmentSubmission(ctx, nil, request)
 	if err != nil {
 		return &entities.AssignmentSubmission{}, err
 	}
 	return newAssignmentSubmission, nil
+}
+
+
+// teacher
+func (service *assignmentSubmissionService) UpdateStudentSubmissionScore(ctx context.Context, score int, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error) {
+	assignmentSubmission, err := service.assignmentSubmissionRepo.UpdateStudentSubmissionScore(ctx, nil, score, assignmentSubmissionID)
+	if err != nil {
+		return &entities.AssignmentSubmission{}, err
+	}
+	return assignmentSubmission, nil
 }
 
 func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByAssignmentID(ctx context.Context, assignmentID int) ([]dto.GetAssSubmissionStudentResponse, error) {
@@ -45,7 +64,6 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 		return nil, err
 	}
 	
-	fmt.Println("submissionMap", assignment.Week.Kelas_idKelas)
 	members, err := service.memberRepo.GetAllMembersByClassID(ctx, nil, assignment.Week.Kelas_idKelas)
 	if err != nil {
 		return nil, err

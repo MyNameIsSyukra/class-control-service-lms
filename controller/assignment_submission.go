@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type (
@@ -59,3 +60,27 @@ func (controller *assignmentSubmissionController) GetAllStudentAssignmentSubmiss
 	ctx.JSON(200, res)
 }
 
+func (controller *assignmentSubmissionController) UpdateStudentSubmissionScore(ctx *gin.Context) {
+	assignmentSubmissionID := ctx.Query("assignment_submission_id")
+	score := ctx.Query("score")
+	parsedAssignmentSubmissionID, err := uuid.Parse(assignmentSubmissionID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+	parsedScore, err := strconv.Atoi(score)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+	submission, err := controller.assignmentSubmissionService.UpdateStudentSubmissionScore(ctx.Request.Context(), parsedScore, parsedAssignmentSubmissionID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.SuccessResponse(submission)
+	ctx.JSON(200, res)
+}
