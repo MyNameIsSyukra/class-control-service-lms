@@ -13,9 +13,11 @@ type (
 	WeekRepository interface {
 		GetAllWeekByClassID(ctx context.Context, tx *gorm.DB, classID uuid.UUID) ([]*entities.Week, error)
 		GetWeekByID(ctx context.Context, tx *gorm.DB, weekID int) (*entities.Week, error)
+
+		// teacher
 		CreateWeeklySection(ctx context.Context, tx *gorm.DB, weekReq dto.WeekRequest) (*entities.Week, error)
 		CreateItemPembelajaran(ctx context.Context, tx *gorm.DB, item *entities.ItemPembelajaran)(*entities.ItemPembelajaran, error)
-
+		DeleteWeeklySection(ctx context.Context, tx *gorm.DB, weekID int) error
 		// CreateWeek(ctx context.Context, tx *gorm.DB, week *entities.Week) (*entities.Week, error)
 		// DeleteWeek(ctx context.Context, tx *gorm.DB, weekID int) error
 	}
@@ -61,5 +63,13 @@ func (repo *weekRepository) CreateItemPembelajaran(ctx context.Context, tx *gorm
 		return nil, err
 	}
 	return item, nil
+}
+
+// deleteWeeklySection(ctx context.Context, tx *gorm.DB, weekID int) error {
+func (repo *weekRepository) DeleteWeeklySection(ctx context.Context, tx *gorm.DB, weekID int) error {
+	if err := repo.db.Where("id = ?", weekID).Delete(&entities.Week{}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 		

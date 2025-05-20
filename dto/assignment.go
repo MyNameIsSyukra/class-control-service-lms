@@ -11,7 +11,8 @@ type CreateAssignmentRequest struct {
 	Description string  `json:"description"`
 	Deadline    time.Time `json:"deadline"`
 	FileName    string  `json:"file_name"`
-	FileLink    string  `json:"file_link"`
+	FileLink	string  `json:"file_link"`
+	// FileID      string  `json:"file_id"`
 }
 
 
@@ -21,7 +22,8 @@ type StudentGetAssignmentByIDResponse struct {
 	Description string  `json:"description"`
 	Deadline    time.Time `json:"deadline"`
 	FileName    string  `json:"file_name"`
-	FileLink    string  `json:"file_link"`
+	FileLink	string  `json:"file_link"`
+	// FileID    string  `json:"file_id"`
 	Status entities.AssStatus `json:"status"`
 	Score  int `json:"score"`
 }

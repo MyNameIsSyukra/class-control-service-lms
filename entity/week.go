@@ -11,8 +11,8 @@ type Week struct {
 	Kelas Kelas `gorm:"foreignKey:Kelas_idKelas;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 
 	// one-to-one with Assignment
-	Assignment *Assignment `json:"assignment,omitempty"`
+	Assignment Assignment `gorm:"foreignKey:WeekID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assignment,omitempty"`
 	
 	// one-to-one with ItemPembelajaran
-	ItemPembelajaran ItemPembelajaran `gorm:"foreignKey:WeekID;references:ID" json:"item_pembelajaran,omitempty"`
+	ItemPembelajaran ItemPembelajaran `gorm:"foreignKey:WeekID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"item_pembelajaran,omitempty"`
 }

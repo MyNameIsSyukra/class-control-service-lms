@@ -19,6 +19,7 @@ type (
 		// teacher
 		GetAllSubmissionByAssignmentID(ctx context.Context, tx *gorm.DB, assignmentID int) ([]*entities.AssignmentSubmission, error)
 		UpdateStudentSubmissionScore(ctx context.Context, tx *gorm.DB, score int, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error)
+		GetAssignmentSubmissionByID(ctx context.Context, tx *gorm.DB, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error)
 	}
 	assignmentSubmissionRepository struct {
 		db *gorm.DB
@@ -93,8 +94,6 @@ func (repo *assignmentSubmissionRepository) UpdateStudentSubmissionScore(ctx con
 	return &res, nil
 }
 
-
-
 func (repo *assignmentSubmissionRepository) CheckStudentSubmssionByAssIdUserID(ctx context.Context, tx *gorm.DB,assignmentId int, userID uuid.UUID) (entities.AssStatus,int, error) {
 	var assignmentSubmissions entities.AssignmentSubmission
 	if err := repo.db.Where("assignment_id = ? AND user_id = ?",assignmentId, userID).Find(&assignmentSubmissions).Error; err != nil {
@@ -104,4 +103,24 @@ func (repo *assignmentSubmissionRepository) CheckStudentSubmssionByAssIdUserID(c
 		return entities.StatusTodo, 0, nil
 	}
 	return assignmentSubmissions.Status,assignmentSubmissions.Score, nil
+}
+
+// get subbmssion by id 
+func (repo *assignmentSubmissionRepository) GetAssignmentSubmissionByID(ctx context.Context, tx *gorm.DB, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error) {
+	var assignmentSubmission entities.AssignmentSubmission
+	if err := repo.db.Where("id = ?", assignmentSubmissionID).First(&assignmentSubmission).Error; err != nil {
+		return &entities.AssignmentSubmission{}, err
+	}
+	res := entities.AssignmentSubmission{
+		ID:           assignmentSubmission.ID,
+		AssignmentID: assignmentSubmission.AssignmentID,
+		UserID:       assignmentSubmission.UserID,
+		IDFile:       assignmentSubmission.IDFile,
+		Status: 	 assignmentSubmission.Status,
+		Score:        assignmentSubmission.Score,
+		CreatedAt:     assignmentSubmission.CreatedAt,
+		UpdatedAt:     assignmentSubmission.UpdatedAt,
+		Assignment: nil,
+	}
+	return &res, nil
 }

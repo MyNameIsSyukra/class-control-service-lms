@@ -15,6 +15,8 @@ type (
 	AssignmentSubmissionController interface {
 		CreateAssignmentSubmission(ctx *gin.Context)
 		GetAllStudentAssignmentSubmissionByAssignmentID(ctx *gin.Context)
+		GetAssignmentSubmissionByID(ctx *gin.Context)
+		UpdateStudentSubmissionScore(ctx *gin.Context)
 	}
 	assignmentSubmissionController struct {
 		assignmentSubmissionService Assignment.AssignmentSubmissionService
@@ -76,6 +78,24 @@ func (controller *assignmentSubmissionController) UpdateStudentSubmissionScore(c
 		return
 	}
 	submission, err := controller.assignmentSubmissionService.UpdateStudentSubmissionScore(ctx.Request.Context(), parsedScore, parsedAssignmentSubmissionID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.SuccessResponse(submission)
+	ctx.JSON(200, res)
+}
+
+func (controller *assignmentSubmissionController) GetAssignmentSubmissionByID(ctx *gin.Context) {
+	assignmentSubmissionID := ctx.Query("assignment_submission_id")
+	parsedAssignmentSubmissionID, err := uuid.Parse(assignmentSubmissionID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+	submission, err := controller.assignmentSubmissionService.GetAssignmentSubmissionByID(ctx.Request.Context(), parsedAssignmentSubmissionID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(http.StatusBadRequest, res)

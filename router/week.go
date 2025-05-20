@@ -13,6 +13,7 @@ func WeekSection(route *gin.Engine, injector *do.Injector){
 	routes := route.Group("teacher/kelas")
 	{
 		routes.POST("/weekly-section", weekController.CreateWeeklySection)
+		routes.DELETE("/weekly-section", weekController.DeleteWeeklySection)
 	}
 	routes = route.Group("/kelas")
 	{

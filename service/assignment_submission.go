@@ -17,6 +17,7 @@ type (
 		// teacher
 		GetAllStudentAssignmentSubmissionByAssignmentID(ctx context.Context, assignmentID int) ([]dto.GetAssSubmissionStudentResponse, error)
 		UpdateStudentSubmissionScore(ctx context.Context, score int, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error)
+		GetAssignmentSubmissionByID(ctx context.Context, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error)
 	}
 	assignmentSubmissionService struct {
 		assignmentSubmissionRepo repository.AssignmentSubmissionRepository
@@ -54,6 +55,18 @@ func (service *assignmentSubmissionService) UpdateStudentSubmissionScore(ctx con
 	return assignmentSubmission, nil
 }
 
+func (service *assignmentSubmissionService) GetAssignmentSubmissionByID(ctx context.Context, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error) {
+	assignmentSubmission, err := service.assignmentSubmissionRepo.GetAssignmentSubmissionByID(ctx, nil, assignmentSubmissionID)
+	if err != nil {
+		return &entities.AssignmentSubmission{}, err
+	}
+	if assignmentSubmission.ID == uuid.Nil {
+		return &entities.AssignmentSubmission{}, fmt.Errorf("assignment submission not found")
+	}
+	return assignmentSubmission, nil
+}
+
+
 func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByAssignmentID(ctx context.Context, assignmentID int) ([]dto.GetAssSubmissionStudentResponse, error) {
 	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, assignmentID)
 	if err != nil {
@@ -70,52 +83,67 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 	}
 
 	submissionMap := make(map[uuid.UUID]*entities.AssignmentSubmission)
+	submissionMapping := make(map[uuid.UUID]*entities.AssignmentSubmission)
 	for _, submission := range assignmentSubmissions {
 		submissionMap[submission.UserID] = submission
 	}
-	
-	if len(assignmentSubmissions) == 0 {
-		for _, member := range members {
-			if member.Role == "teacher" {
-				continue
-			}
-			submissionMap[member.User_userID] = &entities.AssignmentSubmission{
+		
+
+	for _, member := range members {
+		if member.Role == "teacher" {
+			continue
+		}
+		if submissionMap[member.User_userID] == nil {
+			submissionMapping[member.User_userID] = &entities.AssignmentSubmission{
 				ID: uuid.Nil,
 				UserID: member.User_userID,
 				AssignmentID: assignmentID,
-				Status: entities.StatusTodo,
+				IDFile: "",
 				Score: 0,
+				Status: entities.StatusTodo,
+				CreatedAt: member.CreatedAt,
+				UpdatedAt: member.UpdatedAt,
+			}
+		}else {
+			submissionMapping[member.User_userID] = &entities.AssignmentSubmission{
+				ID	:submissionMap[member.User_userID].ID,
+				UserID: member.User_userID,
+				AssignmentID: assignmentID,
+				IDFile: submissionMap[member.User_userID].IDFile,
+				Score: submissionMap[member.User_userID].Score,
+				Status: submissionMap[member.User_userID].Status,
 				CreatedAt: member.CreatedAt,
 				UpdatedAt: member.UpdatedAt,
 			}
 		}
 	}
-		
+	
 	var result []dto.GetAssSubmissionStudentResponse
 	for _, member := range members {
 		if member.Role == "teacher" {
 			continue
 		}
-		// fmt.Println("member", member)
-		mem := submissionMap[member.User_userID]
-		fmt.Println("mem", mem.Status)
+		
+		mem := submissionMapping[member.User_userID]
 		if mem.Status == "" {
 			mem.Status = entities.StatusTodo
 		}
+		link :=fmt.Sprintf("http://localhost:8082/teacher/student-assignment/%s", mem.IDFile)
 		dto := dto.GetAssSubmissionStudentResponse{
 			ID:         &mem.ID,
 			Username:   member.Username,
-			Role: 	  member.Role,
 			User_userID: member.User_userID,
 			Status: 	mem.Status,
 			Score:      mem.Score,
+			LinkFile:  link,
 			CreatedAt: mem.CreatedAt,
 			UpdatedAt: mem.UpdatedAt,
 		}
+		if mem.IDFile == "" {
+			dto.LinkFile = ""
+		}
 		result = append(result, dto)
 	}
-	
-
-
 	return result, nil
 }
+		

@@ -13,7 +13,10 @@ type (
 	WeekService interface {
 		GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) ([]*entities.Week, error)
 		GetWeekByID(ctx context.Context, weekID int) (dto.WeekResponseByID, error)
+
+		// teacher
 		CreateWeeklySection(ctx context.Context, request dto.CreateItemPembelajaranRequest) (*entities.ItemPembelajaran, error)
+		DeleteWeeklySection(ctx context.Context, weekID int) error
 		// CreateWeeklySection(ctx context.Context, weekReq dto.WeekRequest) (*entities.Week, error)
 		// DeleteWeeklySection(ctx context.Context, weekID int) error
 	}
@@ -44,7 +47,7 @@ func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.We
 		WeekNumber:       week.WeekNumber,
 		KelasID:          week.Kelas_idKelas,
 		ItemPembelajarans: &week.ItemPembelajaran,
-		Assignment:       week.Assignment,
+		Assignment:       &week.Assignment,
 	}
 	if week.Assignment.Title == "" {
 		resp.Assignment = nil
@@ -78,4 +81,12 @@ func (service *weekService) CreateWeeklySection(ctx context.Context, request dto
 	}
 
 	return newItem, nil
+}
+
+func (service *weekService) DeleteWeeklySection(ctx context.Context, weekID int) error {
+	err := service.weekRepo.DeleteWeeklySection(ctx, nil, weekID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

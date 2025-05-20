@@ -12,7 +12,8 @@ type Assignment struct {
 	Description string         `json:"description"`
 	Deadline    time.Time      `json:"deadline"`
 	FileName    string         `json:"file_name"`
-	FileLink    string         `json:"path_file"`
+	// FileID    string         `json:"file_id"`
+	FileLink	string         `json:"file_link"`
 	WeekID          int            `json:"WeekdID"` // same as Week.ID
 	
 
