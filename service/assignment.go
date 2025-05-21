@@ -61,7 +61,7 @@ func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context
 	if err != nil {
 		return dto.StudentGetAssignmentByIDResponse{}, err
 	}
-	link := os.Getenv("CONTENT_URL") + "student/assignment-submission/" + assSubmission.IDFile
+	link := os.Getenv("CONTENT_URL") + "/student-assignment/user/" + assSubmission.IDFile
 	resp := dto.StudentGetAssignmentByIDResponse{
 		WeekID:      assignment.WeekID,
 		Title:       assignment.Title,

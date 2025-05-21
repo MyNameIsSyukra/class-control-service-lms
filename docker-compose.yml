@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile
-    container_name: ${APP_NAME:class-control-service-lms}-app
+    container_name: ${APP_NAME:-class-control-service-lms}-app
     volumes:
       - .:/app
     ports:
@@ -13,7 +13,7 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: ${APP_NAME:class-control-service-lms}-nginx
+    container_name: ${APP_NAME:-class-control-service-lms}-nginx
     ports:
       - ${NGINX_PORT:-81}:80
     volumes:
@@ -26,10 +26,10 @@ services:
 
   postgres:
     hostname: postgres
-    container_name: ${APP_NAME:class-control-service-lms}-db
+    container_name: ${APP_NAME:-class-control-service-lms}-db
     image: postgres:latest
     ports:
-      - ${DB_PORT}:5432
+      - 5440:5432
     volumes:
       - ./docker/postgresql/tmp:/var/lib/postgresql/data
       - app-data:/var/lib/postgresql/data
