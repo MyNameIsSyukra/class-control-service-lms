@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type (
@@ -59,7 +60,11 @@ func (service *kelasController) GetAll(ctx *gin.Context) {
 }
 
 func (service *kelasController) GetById(ctx *gin.Context) {
-	id := ctx.Query("id")
+	id,err := uuid.Parse(ctx.Query("id"))
+	if err != nil {
+		ctx.JSON(400, gin.H{"error": "Invalid ID"})
+		return
+	}
 	kelas, err := service.kelasService.GetById(ctx.Request.Context(), id)
 	if err != nil {
 		ctx.JSON(404, gin.H{"error": "Class not found"})
@@ -69,7 +74,11 @@ func (service *kelasController) GetById(ctx *gin.Context) {
 }
 
 func (service *kelasController) Update(ctx *gin.Context) {
-	id := ctx.Query("id")
+	id,err :=  uuid.Parse(ctx.Query("id"))
+	if err != nil {
+		ctx.JSON(400, gin.H{"error": "Invalid ID"})
+		return
+	}
 	var req dto.KelasUpdateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, gin.H{"error": "Invalid request"})
@@ -85,12 +94,12 @@ func (service *kelasController) Update(ctx *gin.Context) {
 }
 
 func (service *kelasController) Delete(ctx *gin.Context) {
-	id := ctx.Query("id")
-	if id == "" {
+	id,err := uuid.Parse(ctx.Query("id"))
+	if err != nil {
 		ctx.JSON(400, gin.H{"error": "Invalid ID"})
 		return
 	}
-	err := service.kelasService.Delete(ctx.Request.Context(), id)
+	err = service.kelasService.Delete(ctx.Request.Context(), id)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": "Failed to delete class"})
 		return

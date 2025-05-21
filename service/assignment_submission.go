@@ -6,8 +6,11 @@ import (
 	"LMSGo/repository"
 	"context"
 	"fmt"
+	"net/http"
+	"os"
 
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 type (
@@ -15,9 +18,10 @@ type (
 		CreateAssignmentSubmission(ctx context.Context, request dto.AssignmentSubmissionRequest) (*entities.AssignmentSubmission, error)
 
 		// teacher
-		GetAllStudentAssignmentSubmissionByAssignmentID(ctx context.Context, assignmentID int) ([]dto.GetAssSubmissionStudentResponse, error)
+		GetAllStudentAssignmentSubmissionByAssignmentID(ctx context.Context,status string, assignmentID int) ([]dto.GetAssSubmissionStudentResponse, error)
 		UpdateStudentSubmissionScore(ctx context.Context, score int, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error)
-		GetAssignmentSubmissionByID(ctx context.Context, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error)
+		GetAssignmentSubmissionByID(ctx context.Context, assignmentSubmissionID uuid.UUID) (dto.GetAssSubmissionStudentResponse, error)
+		DeleteAssignmentSubmissionByID(ctx context.Context, assignmentSubmissionID uuid.UUID) error
 	}
 	assignmentSubmissionService struct {
 		assignmentSubmissionRepo repository.AssignmentSubmissionRepository
@@ -31,11 +35,11 @@ func NewAssignmentSubmissionService(assignmentSubmissionRepo repository.Assignme
 }
 func (service *assignmentSubmissionService) CreateAssignmentSubmission(ctx context.Context, request dto.AssignmentSubmissionRequest) (*entities.AssignmentSubmission, error) {
 	// check if the user has submitted the assignment
-	assStatus, _, err := service.assignmentSubmissionRepo.CheckStudentSubmssionByAssIdUserID(ctx, nil, request.AssignmentID, request.UserID)
+	assSubmission, err := service.assignmentSubmissionRepo.CheckStudentSubmssionByAssIdUserID(ctx, nil, request.AssignmentID, request.UserID)
 	if err != nil {
 		return &entities.AssignmentSubmission{}, err
 	}
-	if assStatus == entities.StatusSubmitted || assStatus == entities.StatusLate {
+	if assSubmission.Status == entities.StatusSubmitted || assSubmission.Status == entities.StatusLate {
 		return &entities.AssignmentSubmission{}, fmt.Errorf("you have submitted this assignment")
 	}
 	newAssignmentSubmission, err := service.assignmentSubmissionRepo.CreateAssignmentSubmission(ctx, nil, request)
@@ -55,39 +59,60 @@ func (service *assignmentSubmissionService) UpdateStudentSubmissionScore(ctx con
 	return assignmentSubmission, nil
 }
 
-func (service *assignmentSubmissionService) GetAssignmentSubmissionByID(ctx context.Context, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error) {
+func (service *assignmentSubmissionService) GetAssignmentSubmissionByID(ctx context.Context, assignmentSubmissionID uuid.UUID) (dto.GetAssSubmissionStudentResponse, error) {
 	assignmentSubmission, err := service.assignmentSubmissionRepo.GetAssignmentSubmissionByID(ctx, nil, assignmentSubmissionID)
 	if err != nil {
-		return &entities.AssignmentSubmission{}, err
+		return dto.GetAssSubmissionStudentResponse{}, err
 	}
 	if assignmentSubmission.ID == uuid.Nil {
-		return &entities.AssignmentSubmission{}, fmt.Errorf("assignment submission not found")
+		return dto.GetAssSubmissionStudentResponse{}, fmt.Errorf("assignment submission not found")
 	}
-	return assignmentSubmission, nil
+	student, err := service.memberRepo.GetMemberById(ctx, nil, assignmentSubmission.UserID)
+	if err != nil {
+		return dto.GetAssSubmissionStudentResponse{}, err
+	}
+	link := os.Getenv("CONTENT_URL") + "teacher/student-assignment/" + assignmentSubmission.IDFile	
+
+	return dto.GetAssSubmissionStudentResponse{
+		ID:         &assignmentSubmission.ID,
+		User_userID: student.User_userID,
+		Username:   student.Username,
+		Status:     assignmentSubmission.Status,
+		Score:      assignmentSubmission.Score,
+		LinkFile:   &link,
+		CreatedAt: &assignmentSubmission.CreatedAt,
+		UpdatedAt: &assignmentSubmission.UpdatedAt,
+	}, nil
 }
 
 
-func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByAssignmentID(ctx context.Context, assignmentID int) ([]dto.GetAssSubmissionStudentResponse, error) {
-	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, assignmentID)
+func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByAssignmentID(ctx context.Context,status string, assignmentID int) ([]dto.GetAssSubmissionStudentResponse, error) {
+	err := godotenv.Load(".env")
 	if err != nil {
-		return nil, err
-	}
-	assignmentSubmissions, err := service.assignmentSubmissionRepo.GetAllSubmissionByAssignmentID(ctx, nil, assignmentID)
-	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	
+	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, assignmentID)
+	if err != nil {
+		return []dto.GetAssSubmissionStudentResponse{}, err
+	}
+
 	members, err := service.memberRepo.GetAllMembersByClassID(ctx, nil, assignment.Week.Kelas_idKelas)
 	if err != nil {
-		return nil, err
+		return []dto.GetAssSubmissionStudentResponse{}, err
+	}
+
+	assignmentSubmissions, err := service.assignmentSubmissionRepo.GetAllSubmissionByAssignmentID(ctx, nil, assignmentID)
+	if err != nil {
+		return []dto.GetAssSubmissionStudentResponse{}, err
 	}
 
 	submissionMap := make(map[uuid.UUID]*entities.AssignmentSubmission)
 	submissionMapping := make(map[uuid.UUID]*entities.AssignmentSubmission)
+	
 	for _, submission := range assignmentSubmissions {
 		submissionMap[submission.UserID] = submission
 	}
-		
 
 	for _, member := range members {
 		if member.Role == "teacher" {
@@ -118,32 +143,73 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 		}
 	}
 	
-	var result []dto.GetAssSubmissionStudentResponse
+	var res []dto.GetAssSubmissionStudentResponse
 	for _, member := range members {
 		if member.Role == "teacher" {
 			continue
 		}
-		
+		result := dto.GetAssSubmissionStudentResponse{}
 		mem := submissionMapping[member.User_userID]
-		if mem.Status == "" {
-			mem.Status = entities.StatusTodo
+		if mem.ID == uuid.Nil {
+			result.ID = nil
+			result.User_userID = member.User_userID
+			result.Username = member.Username
+			result.Status = entities.AssStatus("todo")
+			result.LinkFile = nil
+			result.Score = 0
+			result.CreatedAt = nil
+			result.UpdatedAt = nil
+		}else {
+			link := os.Getenv("CONTENT_URL") + "teacher/student-assignment/" + mem.IDFile
+			result.ID = &mem.ID
+			result.User_userID = member.User_userID
+			result.Username = member.Username
+			result.Status = mem.Status
+			result.LinkFile = &link
+			result.Score = mem.Score
+			result.CreatedAt = &mem.CreatedAt
+			result.UpdatedAt = &mem.UpdatedAt
 		}
-		link :=fmt.Sprintf("http://localhost:8082/teacher/student-assignment/%s", mem.IDFile)
-		dto := dto.GetAssSubmissionStudentResponse{
-			ID:         &mem.ID,
-			Username:   member.Username,
-			User_userID: member.User_userID,
-			Status: 	mem.Status,
-			Score:      mem.Score,
-			LinkFile:  link,
-			CreatedAt: mem.CreatedAt,
-			UpdatedAt: mem.UpdatedAt,
+		if mem.Status == entities.AssStatus(status){
+			res = append(res,result)
+		}else if status == "" {
+		res = append(res, result)
 		}
-		if mem.IDFile == "" {
-			dto.LinkFile = ""
-		}
-		result = append(result, dto)
 	}
-	return result, nil
+
+	return res, nil
+}
+
+// delete assignment submission by id
+func (service *assignmentSubmissionService) DeleteAssignmentSubmissionByID(ctx context.Context, assignmentSubmissionID uuid.UUID) error {
+	err := godotenv.Load(".env")
+	if err != nil {
+		panic(err)
+	}
+	
+	// delete file from storage
+	
+	assignmentSubmission, err := service.assignmentSubmissionRepo.GetAssignmentSubmissionByID(ctx, nil, assignmentSubmissionID)
+	if err != nil {
+		return err
+	}
+	if assignmentSubmission.ID == uuid.Nil {
+		return fmt.Errorf("assignment submission not found")
+	}
+	link := os.Getenv("CONTENT_URL") + "/student-assignment/" + assignmentSubmission.IDFile
+	req, err := http.NewRequest(http.MethodDelete, link, nil)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	_, err = client.Do(req)
+	if err != nil {
+		return err
+	}
+	err = service.assignmentSubmissionRepo.DeleteAssignmentSubmission(ctx, nil, assignmentSubmissionID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 		

@@ -5,15 +5,17 @@ import (
 	entities "LMSGo/entity"
 	database "LMSGo/repository"
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type (
 	KelasService interface {
 		Create(ctx context.Context,kelas *dto.CreateKelasRequest) (*entities.Kelas, error)
 		GetAllKelasWithPagination(ctx context.Context, req dto.PaginationRequest) (dto.KelasPaginationResponse, error)
-		GetById(ctx context.Context,id string) (*entities.Kelas, error)
-		Update(ctx context.Context,id string, kelas *dto.KelasUpdateRequest) (*entities.Kelas,error)
-		Delete(ctx context.Context,id string) error
+		GetById(ctx context.Context,id uuid.UUID) (*entities.Kelas, error)
+		Update(ctx context.Context,id uuid.UUID, kelas *dto.KelasUpdateRequest) (*entities.Kelas,error)
+		Delete(ctx context.Context,id uuid.UUID) error
 	}
 
 	kelasService struct {
@@ -53,7 +55,7 @@ func (service *kelasService) GetAllKelasWithPagination(ctx context.Context, req 
 }
 
 
-func (service *kelasService) GetById(ctx context.Context, id string) (*entities.Kelas, error) {
+func (service *kelasService) GetById(ctx context.Context, id uuid.UUID) (*entities.Kelas, error) {
 	class, err := service.kelasRepo.GetById(ctx,nil, id)
 	if err != nil {
 		return nil, err
@@ -93,7 +95,7 @@ func (service *kelasService) Create(ctx context.Context,kelas *dto.CreateKelasRe
 	return class, nil
 }
 
-func (service *kelasService) Update(ctx context.Context,id string, kelas *dto.KelasUpdateRequest) (*entities.Kelas,error) {
+func (service *kelasService) Update(ctx context.Context,id uuid.UUID, kelas *dto.KelasUpdateRequest) (*entities.Kelas,error) {
 	clas,err := service.kelasRepo.GetById(ctx, nil, id)
 	if clas == nil {
 		return nil,err
@@ -114,7 +116,7 @@ func (service *kelasService) Update(ctx context.Context,id string, kelas *dto.Ke
 	return data, nil
 }
 
-func (service *kelasService) Delete(ctx context.Context,id string) error {
+func (service *kelasService) Delete(ctx context.Context,id uuid.UUID) error {
 	class, err := service.kelasRepo.GetById(ctx, nil, id)
 	if class == nil {
 		return err

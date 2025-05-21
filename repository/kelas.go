@@ -15,9 +15,9 @@ type(
 			GetAll(ctx context.Context,
 				tx *gorm.DB,
 				req dto.PaginationRequest,) (dto.GetAllKelasRepoResponse, error)
-			GetById(ctx context.Context, tx *gorm.DB,id string)(*entities.Kelas, error)
+			GetById(ctx context.Context, tx *gorm.DB,id uuid.UUID)(*entities.Kelas, error)
 			Update(ctx context.Context, tx *gorm.DB, class *entities.Kelas) (*entities.Kelas,error)
-			Delete(ctx context.Context, tx *gorm.DB,id string) error
+			Delete(ctx context.Context, tx *gorm.DB,id uuid.UUID) error
 			UpdateClassTeacherID(ctx context.Context, tx *gorm.DB, teacherId uuid.UUID, classID uuid.UUID, teacherName string) (*entities.Kelas,error)
 		}
 	kelasRepository struct {
@@ -63,7 +63,7 @@ func (repo *kelasRepository) GetAll(ctx context.Context,
 
 }
 
-func (repo *kelasRepository) GetById(ctx context.Context, tx *gorm.DB,id string)(*entities.Kelas, error) {
+func (repo *kelasRepository) GetById(ctx context.Context, tx *gorm.DB,id uuid.UUID)(*entities.Kelas, error) {
 	var kelas entities.Kelas
 	if err := repo.db.Where("id = ?", id).Find(&kelas).Error; err != nil {
 		return &entities.Kelas{}, err
@@ -85,7 +85,7 @@ func (repo *kelasRepository) Update(ctx context.Context, tx *gorm.DB, class *ent
 	return class, nil
 }
 
-func (repo *kelasRepository) Delete(ctx context.Context, tx *gorm.DB,id string) error {
+func (repo *kelasRepository) Delete(ctx context.Context, tx *gorm.DB,id uuid.UUID) error {
 	if err := repo.db.Where("id = ?", id).Delete(&entities.Kelas{}).Error; err != nil {
 		return err
 	}

@@ -14,12 +14,13 @@ type (
 	AssignmentSubmissionRepository interface {
 		// student
 		CreateAssignmentSubmission(ctx context.Context, tx *gorm.DB, assignmentSubmissionReq dto.AssignmentSubmissionRequest) (*entities.AssignmentSubmission, error)
-		CheckStudentSubmssionByAssIdUserID(ctx context.Context, tx *gorm.DB,assignmentId int, userID uuid.UUID) (entities.AssStatus,int, error)
-
+		CheckStudentSubmssionByAssIdUserID(ctx context.Context, tx *gorm.DB,assignmentId int, userID uuid.UUID) (entities.AssignmentSubmission, error)
+		
 		// teacher
 		GetAllSubmissionByAssignmentID(ctx context.Context, tx *gorm.DB, assignmentID int) ([]*entities.AssignmentSubmission, error)
 		UpdateStudentSubmissionScore(ctx context.Context, tx *gorm.DB, score int, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error)
 		GetAssignmentSubmissionByID(ctx context.Context, tx *gorm.DB, assignmentSubmissionID uuid.UUID) (*entities.AssignmentSubmission, error)
+		DeleteAssignmentSubmission(ctx context.Context, tx *gorm.DB, assignmentSubmissionID uuid.UUID) error
 	}
 	assignmentSubmissionRepository struct {
 		db *gorm.DB
@@ -94,15 +95,15 @@ func (repo *assignmentSubmissionRepository) UpdateStudentSubmissionScore(ctx con
 	return &res, nil
 }
 
-func (repo *assignmentSubmissionRepository) CheckStudentSubmssionByAssIdUserID(ctx context.Context, tx *gorm.DB,assignmentId int, userID uuid.UUID) (entities.AssStatus,int, error) {
+func (repo *assignmentSubmissionRepository) CheckStudentSubmssionByAssIdUserID(ctx context.Context, tx *gorm.DB,assignmentId int, userID uuid.UUID) (entities.AssignmentSubmission, error) {
 	var assignmentSubmissions entities.AssignmentSubmission
 	if err := repo.db.Where("assignment_id = ? AND user_id = ?",assignmentId, userID).Find(&assignmentSubmissions).Error; err != nil {
-		return entities.StatusTodo, 0, err
+		return entities.AssignmentSubmission{}, err
 	}
 	if assignmentSubmissions.Status == "" {
-		return entities.StatusTodo, 0, nil
+		return entities.AssignmentSubmission{}, nil
 	}
-	return assignmentSubmissions.Status,assignmentSubmissions.Score, nil
+	return assignmentSubmissions, nil
 }
 
 // get subbmssion by id 
@@ -124,3 +125,12 @@ func (repo *assignmentSubmissionRepository) GetAssignmentSubmissionByID(ctx cont
 	}
 	return &res, nil
 }
+
+// delete assignment submission
+func (repo *assignmentSubmissionRepository) DeleteAssignmentSubmission(ctx context.Context, tx *gorm.DB, assignmentSubmissionID uuid.UUID) error {
+	if err := repo.db.Where("id = ?", assignmentSubmissionID).Delete(&entities.AssignmentSubmission{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+

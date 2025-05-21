@@ -18,3 +18,14 @@ type WeekResponseByID struct {
 	ItemPembelajarans *entities.ItemPembelajaran `json:"item_pembelajaran,omitempty"`
 	Assignment        *entities.Assignment        `json:"assignment,omitempty"`
 }
+
+type ClassIDResponse struct {
+	ID uuid.UUID `json:"id_kelas"`
+	Name string    `json:"name"`
+	Tag string     `json:"tag"`
+	Description string `json:"description"`
+	Teacher string `json:"teacher"`
+	TeacherID uuid.UUID `json:"teacher_id"`
+
+	Week []*entities.Week `json:"week"`
+}

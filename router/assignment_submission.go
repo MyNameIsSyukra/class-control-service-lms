@@ -16,8 +16,9 @@ func AssignmentSubmission(route *gin.Engine, injector *do.Injector) {
 	}
 	routes = route.Group("/kelas")
 	{
-		routes.GET("/assignment-submission/", assignmentSubmissionController.GetAllStudentAssignmentSubmissionByAssignmentID)
+		routes.GET("/assignment-submission", assignmentSubmissionController.GetAllStudentAssignmentSubmissionByAssignmentID)
 		routes.PUT("/assignment-submission", assignmentSubmissionController.UpdateStudentSubmissionScore)
+		routes.DELETE("/assignment-submission", assignmentSubmissionController.DeleteAssignmentSubmissionByID)
 		routes.GET("/assignment-submission/student", assignmentSubmissionController.GetAssignmentSubmissionByID)
 	}
 }

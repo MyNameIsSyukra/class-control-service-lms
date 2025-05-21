@@ -17,6 +17,7 @@ type (
 		GetAllStudentAssignmentSubmissionByAssignmentID(ctx *gin.Context)
 		GetAssignmentSubmissionByID(ctx *gin.Context)
 		UpdateStudentSubmissionScore(ctx *gin.Context)
+		DeleteAssignmentSubmissionByID(ctx *gin.Context)
 	}
 	assignmentSubmissionController struct {
 		assignmentSubmissionService Assignment.AssignmentSubmissionService
@@ -46,13 +47,14 @@ func (controller *assignmentSubmissionController) CreateAssignmentSubmission(ctx
 
 func (controller *assignmentSubmissionController) GetAllStudentAssignmentSubmissionByAssignmentID(ctx *gin.Context) {
 	assignmentID := ctx.Query("assignment_id")
+	status := ctx.Query("status")
 	parsedAssignmentID, err := strconv.Atoi(assignmentID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(400, res)
 		return
 	}
-	submissions, err := controller.assignmentSubmissionService.GetAllStudentAssignmentSubmissionByAssignmentID(ctx.Request.Context(), parsedAssignmentID)
+	submissions, err := controller.assignmentSubmissionService.GetAllStudentAssignmentSubmissionByAssignmentID(ctx.Request.Context(),status, parsedAssignmentID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(http.StatusBadRequest, res)
@@ -102,5 +104,23 @@ func (controller *assignmentSubmissionController) GetAssignmentSubmissionByID(ct
 		return
 	}
 	res := utils.SuccessResponse(submission)
+	ctx.JSON(200, res)
+}
+
+func (controller *assignmentSubmissionController) DeleteAssignmentSubmissionByID(ctx *gin.Context) {
+	assignmentSubmissionID := ctx.Query("assignment_submission_id")
+	parsedAssignmentSubmissionID, err := uuid.Parse(assignmentSubmissionID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+	err = controller.assignmentSubmissionService.DeleteAssignmentSubmissionByID(ctx.Request.Context(), parsedAssignmentSubmissionID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.SuccessResponse("success delete assignment submission")
 	ctx.JSON(200, res)
 }

@@ -65,7 +65,7 @@ func (repo *studentRepository) GetAllMembersByClassID(ctx context.Context, tx *g
 
 func (repo *studentRepository) GetMemberById(ctx context.Context, tx *gorm.DB, id uuid.UUID) (*entities.Member, error) {
 	var member entities.Member
-	if err := repo.db.Where("id = ?", id).Find(&member).Error; err != nil {
+	if err := repo.db.Where("user_user_id = ?", id).First(&member).Error; err != nil {
 		return &entities.Member{}, err
 	}
 	return &member, nil

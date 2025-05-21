@@ -5,8 +5,10 @@ import (
 	entities "LMSGo/entity"
 	"LMSGo/repository"
 	"context"
+	"os"
 
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 type (
@@ -45,25 +47,30 @@ func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignm
 
 // student
 func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context, assignmentID int, userID uuid.UUID) (dto.StudentGetAssignmentByIDResponse, error) {
+	err := godotenv.Load(".env")
+	if err != nil {
+		panic(err)
+	}
 	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, assignmentID)
 	if err != nil {
 		return dto.StudentGetAssignmentByIDResponse{}, err
 	}
 	
 	// check if student has submitted the assignment
-	submissionStatus,score, err := service.assignmentSubmissionRepo.CheckStudentSubmssionByAssIdUserID(ctx, nil, assignmentID, userID)
+	assSubmission, err := service.assignmentSubmissionRepo.CheckStudentSubmssionByAssIdUserID(ctx, nil, assignmentID, userID)
 	if err != nil {
 		return dto.StudentGetAssignmentByIDResponse{}, err
 	}
-
+	link := os.Getenv("CONTENT_URL") + "student/assignment-submission/" + assSubmission.IDFile
 	resp := dto.StudentGetAssignmentByIDResponse{
 		WeekID:      assignment.WeekID,
 		Title:       assignment.Title,
 		Description: assignment.Description,
 		FileName:    assignment.FileName,
 		FileLink:    assignment.FileLink,
-		Status:      submissionStatus,
-		Score:       score,
+		StudentSubmissionLink: link,
+		Status:      assSubmission.Status,
+		Score:       assSubmission.Score,
 	}
 	return resp, nil
 }

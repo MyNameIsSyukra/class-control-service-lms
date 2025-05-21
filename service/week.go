@@ -11,7 +11,7 @@ import (
 
 type (
 	WeekService interface {
-		GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) ([]*entities.Week, error)
+		GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) (dto.ClassIDResponse, error)
 		GetWeekByID(ctx context.Context, weekID int) (dto.WeekResponseByID, error)
 
 		// teacher
@@ -22,19 +22,40 @@ type (
 	}
 	weekService struct {
 		weekRepo database.WeekRepository
+		kelasRepo database.KelasRepository
 	}
 )
 
-func NewWeekService(weekRepo database.WeekRepository) WeekService {
-	return &weekService{weekRepo}
+func NewWeekService(weekRepo database.WeekRepository, kelasRepo database.KelasRepository) WeekService {
+	return &weekService{weekRepo , kelasRepo}
 }
 
-func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) ([]*entities.Week, error) {
+func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) (dto.ClassIDResponse, error) {
+	class, err := service.kelasRepo.GetById(ctx, nil, classID)
+	if err != nil {
+		return dto.ClassIDResponse{}, err
+	}
 	weeks, err := service.weekRepo.GetAllWeekByClassID(ctx, nil, classID)
 	if err != nil {
-		return nil, err
+		return dto.ClassIDResponse{
+			ID: class.ID,
+			Name: class.Name,
+			Tag: class.Tag,
+			Description: class.Description,
+			Teacher: class.Teacher,
+			TeacherID: class.TeacherID,
+			Week : nil,
+		}, err
 	}
-	return weeks, nil
+	return dto.ClassIDResponse{
+		ID: class.ID,
+		Name: class.Name,
+		Tag: class.Tag,
+		Description: class.Description,
+		Teacher: class.Teacher,
+		TeacherID: class.TeacherID,
+		Week: weeks,
+	}, nil
 }
 
 func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.WeekResponseByID, error) {
