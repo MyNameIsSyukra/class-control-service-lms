@@ -12,7 +12,7 @@ import (
 type (
 	WeekRepository interface {
 		GetAllWeekByClassID(ctx context.Context, tx *gorm.DB, classID uuid.UUID) ([]*entities.Week, error)
-		GetWeekByID(ctx context.Context, tx *gorm.DB, weekID int) (*entities.Week, error)
+		GetWeekByID(ctx context.Context, tx *gorm.DB, weekID int) (entities.Week, error)
 
 		// teacher
 		CreateWeeklySection(ctx context.Context, tx *gorm.DB, weekReq dto.WeekRequest) (*entities.Week, error)
@@ -38,12 +38,12 @@ func (repo *weekRepository) GetAllWeekByClassID(ctx context.Context, tx *gorm.DB
 	return weeks, nil
 }
 
-func (repo *weekRepository) GetWeekByID(ctx context.Context, tx *gorm.DB, weekID int) (*entities.Week, error) {
+func (repo *weekRepository) GetWeekByID(ctx context.Context, tx *gorm.DB, weekID int) (entities.Week, error) {
 	var week entities.Week
 	if err := repo.db.Where("id = ?", weekID).Preload("ItemPembelajaran").Preload("Assignment").First(&week).Error; err != nil {
-		return &entities.Week{}, err
+		return entities.Week{}, err
 	}
-	return &week, nil
+	return week, nil
 }
 
 func (repo *weekRepository) CreateWeeklySection(ctx context.Context, tx *gorm.DB, weekReq dto.WeekRequest) (*entities.Week, error){

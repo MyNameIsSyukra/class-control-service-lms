@@ -47,6 +47,36 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 			Week : nil,
 		}, err
 	}
+	if len(weeks) == 0 {
+		return dto.ClassIDResponse{
+			ID: class.ID,
+			Name: class.Name,
+			Tag: class.Tag,
+			Description: class.Description,
+			Teacher: class.Teacher,
+			TeacherID: class.TeacherID,
+			Week : nil,
+		}, nil
+	}
+		
+	var weekResponse []dto.WeekResponse
+	for _, week := range weeks {
+		var weekRes dto.WeekResponse 
+		if week.Assignment.Title == "" {
+			weekRes.Assignment = nil
+		}else if week.ItemPembelajaran.HeadingPertemuan == "" {
+			weekRes.ItemPembelajarans = nil
+		}else {
+			weekRes.ItemPembelajarans = &week.ItemPembelajaran
+			weekRes.Assignment = &week.Assignment
+		}
+		weekRes.WeekID = week.ID
+		weekRes.WeekNumber = week.WeekNumber
+		weekRes.KelasID = week.Kelas_idKelas
+		weekResponse = append(weekResponse, weekRes)
+	}		
+
+
 	return dto.ClassIDResponse{
 		ID: class.ID,
 		Name: class.Name,
@@ -54,7 +84,7 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 		Description: class.Description,
 		Teacher: class.Teacher,
 		TeacherID: class.TeacherID,
-		Week: weeks,
+		Week: weekResponse,
 	}, nil
 }
 
