@@ -33,8 +33,16 @@ func NewMemberService(memberRepo database.StudentRepository, kelasRepo database.
 }
 
 func (service *memberService) AddMemberToClass(ctx context.Context, member *dto.AddMemberRequest) (*entities.Member, error) {
+	// check if the class exists
+	kelas, err := service.kelasRepo.GetById(ctx, nil, member.Kelas_kelasID)
+	if err != nil {
+		return nil, err
+	}
+	if kelas.ID == uuid.Nil {
+		return nil, fmt.Errorf("class with ID %s not found", member.Kelas_kelasID)
+	}
 	// Check if the member already exists in the class
-	_, err := service.memberRepo.GetMemberByClassIDAndUserID(ctx, nil,member.Kelas_kelasID ,member.User_userID)
+	_, err = service.memberRepo.GetMemberByClassIDAndUserID(ctx, nil,member.Kelas_kelasID ,member.User_userID)
 	if err != nil {
 		return nil, err
 	}	

@@ -5,6 +5,7 @@ import (
 	entities "LMSGo/entity"
 	database "LMSGo/repository"
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -35,6 +36,9 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 	if err != nil {
 		return dto.ClassIDResponse{}, err
 	}
+	if class.ID == uuid.Nil {
+		return dto.ClassIDResponse{}, fmt.Errorf("class with ID %s not found", classID)
+	}
 	weeks, err := service.weekRepo.GetAllWeekByClassID(ctx, nil, classID)
 	if err != nil {
 		return dto.ClassIDResponse{
@@ -61,11 +65,14 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 		
 	var weekResponse []dto.WeekResponse
 	for _, week := range weeks {
-		var weekRes dto.WeekResponse 
+		var weekRes dto.WeekResponse
 		if week.Assignment.Title == "" {
+			fmt.Println("Assignment is empty")
 			weekRes.Assignment = nil
+			weekRes.ItemPembelajarans = &week.ItemPembelajaran
 		}else if week.ItemPembelajaran.HeadingPertemuan == "" {
 			weekRes.ItemPembelajarans = nil
+			weekRes.Assignment = &week.Assignment
 		}else {
 			weekRes.ItemPembelajarans = &week.ItemPembelajaran
 			weekRes.Assignment = &week.Assignment
@@ -110,6 +117,13 @@ func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.We
 }
 
 func (service *weekService) CreateWeeklySection(ctx context.Context, request dto.CreateItemPembelajaranRequest) (*entities.ItemPembelajaran, error) {
+	class , err := service.kelasRepo.GetById(ctx, nil, request.KelasID)
+	if err != nil {
+		return nil, fmt.Errorf("class with ID %s not found", request.KelasID)
+	}
+	if class.ID == uuid.Nil {
+		return nil, fmt.Errorf("class with ID %s not found", request.KelasID)
+	}
 	newWeekRequest := dto.WeekRequest{
 		WeekNumber:    request.WeekNumber,
 		Kelas_idKelas: request.KelasID,

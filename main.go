@@ -69,7 +69,10 @@ func main() {
     if !args(db) {
 		return
 	}
-
+	err := migration.Migrate(db)
+	if err != nil {
+		log.Fatalf("error running migration: %v", err)
+	}
     server := gin.Default()
 	server.Use(middleware.CORSMiddleware())
     
