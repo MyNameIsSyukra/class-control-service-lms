@@ -20,6 +20,8 @@ type (
 		DeleteMember(ctx context.Context, id uuid.UUID) error
 		GetAllClassAndAssesmentByUserID(ctx context.Context, userID uuid.UUID) ([]dto.GetClassAndAssignmentResponse, error)
 		GetAllClassByUserID(ctx context.Context, userID uuid.UUID) ([]entities.Kelas, error)
+		// Lintas Service
+		GetMemberByClassIDAndUserID(ctx context.Context, classID, userID uuid.UUID) (*entities.Member, error)
 	}
 
 	memberService struct {
@@ -103,4 +105,18 @@ func (service *memberService) GetAllClassByUserID(ctx context.Context, userID uu
 		return nil, err
 	}
 	return classes, nil
+}
+
+func (service *memberService) GetMemberByClassIDAndUserID(ctx context.Context, classID, userID uuid.UUID) (*entities.Member, error) {
+	member, err := service.memberRepo.GetMemberByClassIDAndUserID(ctx, nil, classID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if member == nil {
+		return nil, fmt.Errorf("member with class ID %s and user ID %s not found", classID, userID)
+	}
+	if member.User_userID == uuid.Nil {
+		return nil, fmt.Errorf("member with class ID %s and user ID %s not found", classID, userID)
+	}
+	return member, nil
 }

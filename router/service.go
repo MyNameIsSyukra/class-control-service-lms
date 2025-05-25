@@ -15,5 +15,6 @@ func Service(server *gin.Engine, injector *do.Injector) {
 	service := server.Group("/service")
 	{
 		service.GET("/class/:classID", memberController.GetAllMembersByClassID)
+		service.GET("/class/member/", memberController.GetMemberByClassIDAndUserID)
 	}	
 }

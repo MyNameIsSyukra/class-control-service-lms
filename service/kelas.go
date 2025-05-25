@@ -5,6 +5,7 @@ import (
 	entities "LMSGo/entity"
 	database "LMSGo/repository"
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -59,6 +60,9 @@ func (service *kelasService) GetById(ctx context.Context, id uuid.UUID) (*entiti
 	class, err := service.kelasRepo.GetById(ctx,nil, id)
 	if err != nil {
 		return nil, err
+	}
+	if class.ID == uuid.Nil {
+		return nil, fmt.Errorf("class with ID %s not found", id)
 	}
 	return class, nil
 }

@@ -21,6 +21,7 @@ type (
 		
 		// Lintas Service
 		GetAllMembersByClassID(ctx *gin.Context)
+		GetMemberByClassIDAndUserID(ctx *gin.Context)
 	}
 	memberController struct {
 		memberService kelas.MemberService
@@ -141,4 +142,33 @@ func (controller *memberController) GetAllMembersByClassID(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(200, members)
+}
+
+func (controller *memberController) GetMemberByClassIDAndUserID(ctx *gin.Context) {
+	classID := ctx.Query("classID")
+	userID := ctx.Query("userID")
+
+	// Assuming classID and userID are UUIDs, you might want to parse them here
+	parsedClassID, err := uuid.Parse(classID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+
+	parsedUserID, err := uuid.Parse(userID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+
+	member, err := controller.memberService.GetMemberByClassIDAndUserID(ctx.Request.Context(), parsedClassID, parsedUserID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(500, res)
+		return
+	}
+	res := utils.SuccessResponse(member)
+	ctx.JSON(200, res)
 }
