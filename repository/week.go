@@ -67,7 +67,7 @@ func (repo *weekRepository) CreateItemPembelajaran(ctx context.Context, tx *gorm
 }
 
 func (repo *weekRepository) UpdateItemPembelajaran(ctx context.Context, tx *gorm.DB, item *entities.ItemPembelajaran) (*entities.ItemPembelajaran, error) {
-	if err := repo.db.Save(item).Error; err != nil {
+	if err := repo.db.Where("week_id=?",item.WeekID).Updates(item).Error; err != nil {
 		return nil, err
 	}
 	return item, nil

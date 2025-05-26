@@ -13,6 +13,7 @@ import (
 type (
 	WeekController interface {
 		CreateWeeklySection(ctx *gin.Context)
+		UpdateWeeklySection(ctx *gin.Context)
 		GetAllWeekByClassID(ctx *gin.Context)
 		GetWeekByID(ctx *gin.Context)
 		DeleteWeeklySection(ctx *gin.Context)
@@ -35,6 +36,39 @@ func (controller *weekController) CreateWeeklySection(ctx *gin.Context) {
 	}
 
 	item, err := controller.weekService.CreateWeeklySection(ctx.Request.Context(), req)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(500, res)
+		return
+	}
+	res := utils.SuccessResponse(item)
+	ctx.JSON(200, res)
+}
+
+func (controller *weekController) UpdateWeeklySection(ctx *gin.Context) {
+	KelasID := ctx.Query("kelas_id")
+	parsedKelasID, err := uuid.Parse(KelasID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+	WeekNumber := ctx.Query("week_number")
+	parsedWeekNumber, err := strconv.Atoi(WeekNumber)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+
+	var req dto.UpdateItemPembelajaranRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+
+	item, err := controller.weekService.UpdateWeeklySection(ctx.Request.Context(),parsedKelasID,parsedWeekNumber, req)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(500, res)
