@@ -18,6 +18,7 @@ type (
 		// teacher
 		CreateWeeklySection(ctx context.Context, request dto.CreateItemPembelajaranRequest) (*entities.ItemPembelajaran, error)
 		DeleteWeeklySection(ctx context.Context, weekID int) error
+		UpdateWeeklySection(ctx context.Context,classId uuid.UUID, week_number int, req dto.UpdateItemPembelajaranRequest) (*entities.ItemPembelajaran, error)
 		// CreateWeeklySection(ctx context.Context, weekReq dto.WeekRequest) (*entities.Week, error)
 		// DeleteWeeklySection(ctx context.Context, weekID int) error
 	}
@@ -147,6 +148,33 @@ func (service *weekService) CreateWeeklySection(ctx context.Context, request dto
 
 	return newItem, nil
 }
+
+// Update WeeklySection is not implemented in the original code, so we will not implement it here.
+func (service *weekService) UpdateWeeklySection(ctx context.Context,classId uuid.UUID, week_number int, req dto.UpdateItemPembelajaranRequest) (*entities.ItemPembelajaran, error) {
+	class, err := service.kelasRepo.GetById(ctx, nil, classId)
+	if err != nil {
+		return nil, fmt.Errorf("class with ID %s not found", classId)
+	}
+	if class.ID == uuid.Nil {
+		return nil, fmt.Errorf("class with ID %s not found", classId)
+	}
+	
+	item := &entities.ItemPembelajaran{
+		WeekID: week_number,
+		HeadingPertemuan: req.HeadingPertemuan,
+		BodyPertemuan: req.BodyPertemuan,
+		UrlVideo: req.UrlVideo,
+		FileName: req.FileName,
+		FileLink: req.FileLink,
+	}
+	
+	item, err = service.weekRepo.UpdateItemPembelajaran(ctx, nil, item)
+	if err != nil {
+		return nil, err
+	}
+	return item, nil
+}
+	
 
 func (service *weekService) DeleteWeeklySection(ctx context.Context, weekID int) error {
 	err := service.weekRepo.DeleteWeeklySection(ctx, nil, weekID)

@@ -12,8 +12,15 @@ import "github.com/google/uuid"
 // }
 
 type CreateItemPembelajaranRequest struct {
-	KelasID          uuid.UUID `json:"kelas_id"`
-	WeekNumber       int    `json:"week_number"`
+	KelasID          uuid.UUID `json:"kelas_id" binding:"required"`
+	WeekNumber       int    `json:"week_number" binding:"required"`
+	HeadingPertemuan string `json:"headingPertemuan" binding:"required"`
+	BodyPertemuan    string `json:"bodyPertemuan" binding:"required"`
+	UrlVideo         string `json:"urlVideo"`
+	FileName         string `json:"fileName"`
+	FileLink         string `json:"file_link"`
+}
+type UpdateItemPembelajaranRequest struct {
 	HeadingPertemuan string `json:"headingPertemuan"`
 	BodyPertemuan    string `json:"bodyPertemuan"`
 	UrlVideo         string `json:"urlVideo"`

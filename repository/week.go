@@ -18,6 +18,7 @@ type (
 		CreateWeeklySection(ctx context.Context, tx *gorm.DB, weekReq dto.WeekRequest) (*entities.Week, error)
 		CreateItemPembelajaran(ctx context.Context, tx *gorm.DB, item *entities.ItemPembelajaran)(*entities.ItemPembelajaran, error)
 		DeleteWeeklySection(ctx context.Context, tx *gorm.DB, weekID int) error
+		UpdateItemPembelajaran(ctx context.Context, tx *gorm.DB, item *entities.ItemPembelajaran) (*entities.ItemPembelajaran, error)
 		// CreateWeek(ctx context.Context, tx *gorm.DB, week *entities.Week) (*entities.Week, error)
 		// DeleteWeek(ctx context.Context, tx *gorm.DB, weekID int) error
 	}
@@ -60,6 +61,13 @@ func (repo *weekRepository) CreateWeeklySection(ctx context.Context, tx *gorm.DB
 
 func (repo *weekRepository) CreateItemPembelajaran(ctx context.Context, tx *gorm.DB, item *entities.ItemPembelajaran) (*entities.ItemPembelajaran, error) {
 	if err := repo.db.Create(item).Error; err != nil {
+		return nil, err
+	}
+	return item, nil
+}
+
+func (repo *weekRepository) UpdateItemPembelajaran(ctx context.Context, tx *gorm.DB, item *entities.ItemPembelajaran) (*entities.ItemPembelajaran, error) {
+	if err := repo.db.Save(item).Error; err != nil {
 		return nil, err
 	}
 	return item, nil
