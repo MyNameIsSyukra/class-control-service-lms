@@ -121,6 +121,6 @@ func (controller *assignmentSubmissionController) DeleteAssignmentSubmissionByID
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
-	res := utils.SuccessResponse("success delete assignment submission")
+	res := utils.SuccessResponse(nil)
 	ctx.JSON(200, res)
 }

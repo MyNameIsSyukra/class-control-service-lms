@@ -130,6 +130,6 @@ func (controller *weekController) DeleteWeeklySection(ctx *gin.Context) {
 		ctx.JSON(500, res)
 		return
 	}
-	res := utils.SuccessResponse("Weekly section deleted successfully")
+	res := utils.SuccessResponse(nil)
 	ctx.JSON(200, res)	
 }

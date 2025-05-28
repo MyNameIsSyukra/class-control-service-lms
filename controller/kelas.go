@@ -37,10 +37,12 @@ func (service *kelasController) Create(ctx *gin.Context) {
 
 	create, err := service.kelasService.Create(ctx.Request.Context(), &req)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": "Failed to create class"})
+		res := response.FailedResponse("Failed to create class")
+		ctx.JSON(500, res)
 		return
-	}	
-	ctx.JSON(200, create)
+	}
+	res := response.SuccessResponse(create)	
+	ctx.JSON(200, res)
 }
 
 func (service *kelasController) GetAll(ctx *gin.Context) {
@@ -62,32 +64,43 @@ func (service *kelasController) GetAll(ctx *gin.Context) {
 func (service *kelasController) GetById(ctx *gin.Context) {
 	id,err := uuid.Parse(ctx.Query("id"))
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid ID"})
+		res := response.FailedResponse("Invalid ID")
+		ctx.JSON(400, res)
 		return
 	}
 	kelas, err := service.kelasService.GetById(ctx.Request.Context(), id)
 	if err != nil {
-		ctx.JSON(404, gin.H{"error": "Class not found"})
+		res := response.FailedResponse("Failed to get class")
+		ctx.JSON(404, res)
 		return
 	}
-	ctx.JSON(200, kelas)
+	if kelas.ID == uuid.Nil {
+		res := response.FailedResponse("Class not found")
+		ctx.JSON(404, res)
+		return
+	}
+	res := response.SuccessResponse(kelas)
+	ctx.JSON(200, res)
 }
 
 func (service *kelasController) Update(ctx *gin.Context) {
 	id,err :=  uuid.Parse(ctx.Query("id"))
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid ID"})
+		res := response.FailedResponse("Invalid ID")
+		ctx.JSON(400, res)
 		return
 	}
 	var req dto.KelasUpdateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid request"})
+		res := response.FailedResponse("Invalid request body")
+		ctx.JSON(400, res)
 		return
 	}
 
 	kelas, err := service.kelasService.Update(ctx.Request.Context(), id, &req)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": "Failed to update class"})
+		res := response.FailedResponse("Failed to update class")
+		ctx.JSON(500, res)
 		return
 	}
 	ctx.JSON(200, kelas)
@@ -96,13 +109,16 @@ func (service *kelasController) Update(ctx *gin.Context) {
 func (service *kelasController) Delete(ctx *gin.Context) {
 	id,err := uuid.Parse(ctx.Query("id"))
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid ID"})
+		res := response.FailedResponse("Invalid ID")
+		ctx.JSON(400, res)
 		return
 	}
 	err = service.kelasService.Delete(ctx.Request.Context(), id)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": "Failed to delete class"})
+		res := response.FailedResponse("Failed to delete class")
+		ctx.JSON(500, res)
 		return
 	}
-	ctx.JSON(200, gin.H{"message": "Class deleted successfully"})
+	res := response.SuccessResponse(nil)
+	ctx.JSON(200, res)
 }
