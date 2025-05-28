@@ -60,7 +60,7 @@ type GetClassAndAssignmentResponse struct {
 	ClassDesc    string    `json:"class_desc"`
 	ClassTeacher string    `json:"class_teacher"`
 	ClassTeacherID uuid.UUID       `json:"class_teacher_id"`
-	ClassAssessment []AssessmentResponse `json:"class_assignments"`
+	ClassAssessment []AssessmentResponse `json:"class_assessment"`
 }
 
 type ExamStatus string

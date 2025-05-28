@@ -156,6 +156,9 @@ func (repo *studentRepository) GetAllClassAndAssesmentByUserID(ctx context.Conte
 			assessments = nil
 		}
 		data.ClassAssessment = assessments
+		if data.ClassAssessment == nil {
+			continue
+		}
 		datas = append(datas, data)
 	}
 	return datas, nil

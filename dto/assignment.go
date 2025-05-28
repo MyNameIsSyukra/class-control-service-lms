@@ -6,10 +6,10 @@ import (
 )
 
 type CreateAssignmentRequest struct {
-	WeekID      int     `json:"week_id"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Deadline    time.Time `json:"deadline"`
+	WeekID      int     `form:"week_id" json:"week_id"`
+	Title       string  `form:"title" json:"title"`
+	Description string  `form:"description" json:"description"`
+	Deadline    time.Time `form:"deadline" json:"deadline"`
 	FileName    string  `json:"file_name"`
 	FileLink	string  `json:"file_link"`
 	// FileID      string  `json:"file_id"`
