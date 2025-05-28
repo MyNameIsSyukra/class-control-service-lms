@@ -38,6 +38,7 @@ func Seeder()error{
 func SeedKelas(db *gorm.DB) error {
 	kelasData := []entities.Kelas{
 		{
+			ID: uuid.MustParse("11111111-1111-1111-1111-111111111111"), // UUID dummy, ganti dengan UUID asli
 			Name:        "Mathematics 101",
 			Tag:         "Class A",
 			Description: "Master the fundamentals of mathematics",
@@ -45,6 +46,7 @@ func SeedKelas(db *gorm.DB) error {
 			TeacherID:   uuid.MustParse("11111111-1111-1111-1111-111111111111"),
 		},
 		{
+			ID: uuid.MustParse("22222222-2222-2222-2222-222222222222"), // UUID dummy, ganti dengan UUID asli
 			Name:        "Introduction to Physics",
 			Tag:         "Class B",
 			Description: "Learn the basic principles of physics",
@@ -52,6 +54,7 @@ func SeedKelas(db *gorm.DB) error {
 			TeacherID:   uuid.MustParse("22222222-2222-2222-2222-222222222222"),
 		},
 		{
+			ID: uuid.MustParse("33333333-3333-3333-3333-333333333333"), // UUID dummy, ganti dengan UUID asli
 			Name:        "Computer Science Basics",
 			Tag:         "Class C",
 			Description: "Enhance your programming skills through this class",
@@ -59,6 +62,7 @@ func SeedKelas(db *gorm.DB) error {
 			TeacherID:   uuid.MustParse("33333333-3333-3333-3333-333333333333"),
 		},
 		{
+			ID: uuid.MustParse("44444444-4444-4444-4444-444444444444"), // UUID dummy, ganti dengan UUID asli
 			Name:        "English Literature",
 			Tag:         "Class D",
 			Description: "Explore classic and modern literature",
@@ -66,6 +70,7 @@ func SeedKelas(db *gorm.DB) error {
 			TeacherID:   uuid.MustParse("44444444-4444-4444-4444-444444444444"),
 		},
 		{
+			ID: uuid.MustParse("55555555-5555-5555-5555-555555555555"), // UUID dummy, ganti dengan UUID asli
 			Name:        "History of Art",
 			Tag:         "Class E",
 			Description: "A journey through the history of art and its movements",
@@ -73,6 +78,7 @@ func SeedKelas(db *gorm.DB) error {
 			TeacherID:   uuid.MustParse("55555555-5555-5555-5555-555555555555"),
 		},
 		{
+			ID: uuid.MustParse("66666666-6666-6666-6666-666666666666"), // UUID dummy, ganti dengan UUID asli
 			Name:        "Biology 101",
 			Tag:         "Class F",
 			Description: "Understand the basics of biology and life sciences",
@@ -80,6 +86,7 @@ func SeedKelas(db *gorm.DB) error {
 			TeacherID:   uuid.MustParse("66666666-6666-6666-6666-666666666666"),
 		},
 		{
+			ID: uuid.MustParse("77777777-7777-7777-7777-777777777777"), // UUID dummy, ganti dengan UUID asli
 			Name:        "Chemistry Fundamentals",
 			Tag:         "Class G",
 			Description: "Dive into the world of chemistry and its applications",
@@ -87,6 +94,7 @@ func SeedKelas(db *gorm.DB) error {
 			TeacherID:   uuid.MustParse("77777777-7777-7777-7777-777777777777"),
 		},
 		{
+			ID: uuid.MustParse("88888888-8888-8888-8888-888888888888"), // UUID dummy, ganti dengan UUID asli
 			Name:        "Introduction to Psychology",
 			Tag:         "Class H",
 			Description: "Discover the basics of human behavior and mind",
@@ -94,6 +102,7 @@ func SeedKelas(db *gorm.DB) error {
 			TeacherID:   uuid.MustParse("88888888-8888-8888-8888-888888888888"),
 		},
 		{
+			ID: uuid.MustParse("99999999-9999-9999-9999-999999999999"), // UUID dummy, ganti dengan UUID asli
 			Name:        "Economics 101",
 			Tag:         "Class I",
 			Description: "Learn the principles of economics and its impact on society",
@@ -234,79 +243,47 @@ func SeedMembers(db *gorm.DB) error {
 
 func SeedWeekContent(db *gorm.DB) error {
 	// UUID dummy untuk kelas (ubah dengan UUID kelas asli dari DB kamu)
-	classID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
-
-	// Buat data Week
-	weeks := []entities.Week{
-		{
-			ID:            1,
-			WeekNumber:    1,
-			Kelas_idKelas: classID,
-		},
-		{
-			ID:            2,
-			WeekNumber:    2,
-			Kelas_idKelas: classID,
-		},
-	}
-
-	for _, week := range weeks {
-		if err := db.Create(&week).Error; err != nil {
-			return err
+	for i := 1; i <= 9; i++ {
+		classID := uuid.MustParse(fmt.Sprintf("%d%d%d%d%d%d%d%d-%d%d%d%d-%d%d%d%d-%d%d%d%d-%d%d%d%d%d%d%d%d%d%d%d%d",i, i, i, i, i, i, i, i,i, i, i, i,i, i, i, i,i, i, i, i,i, i, i, i, i, i, i, i, i, i, i, i)) // Ganti dengan UUID kelas yang sesuai
+		weeks := []entities.Week{
+			{
+				WeekNumber:    1,
+				Kelas_idKelas: classID,
+			},
+			{
+				WeekNumber:    2,
+				Kelas_idKelas: classID,
+			},
+		}
+		for _, week := range weeks {
+			if err := db.Create(&week).Error; err != nil {
+				return err
+			}
+			// Seed item pembelajaran untuk setiap minggu
+			itemPembelajaran := entities.ItemPembelajaran{
+				WeekID: week.ID,
+				HeadingPertemuan: fmt.Sprintf("Pertemuan %d", week.WeekNumber),
+				BodyPertemuan: fmt.Sprintf("Materi untuk pertemuan %d", week.WeekNumber),
+				UrlVideo: fmt.Sprintf("https://example.com/video_pertemuan_%d.mp4", week.WeekNumber),
+				FileName: fmt.Sprintf("file_pertemuan_%d.pdf", week.WeekNumber),
+				FileLink: fmt.Sprintf("https://example.com/file_pertemuan_%d.pdf", week.WeekNumber),
+			}
+			if err := db.Create(&itemPembelajaran).Error; err != nil {
+				return err
+			}
+			// Seed assignment untuk setiap minggu
+			assignment := entities.Assignment{
+				Title: fmt.Sprintf("Tugas Minggu %d", week.WeekNumber),
+				Description: fmt.Sprintf("Deskripsi tugas untuk minggu %d", week.WeekNumber),
+				Deadline: time.Now().AddDate(0, 0, 7), // Deadline 7 hari dari sekarang
+				FileName: fmt.Sprintf("tugas_minggu_%d.pdf", week.WeekNumber),
+				FileLink: fmt.Sprintf("https://example.com/tugas_minggu_%d.pdf", week.WeekNumber),
+				WeekID: week.ID,
+			}
+			if err := db.Create(&assignment).Error; err != nil {
+				return err
+			}
 		}
 	}
-
-	// Buat data ItemPembelajaran (1:1 dengan Week)
-	itemPembelajarans := []entities.ItemPembelajaran{
-		{
-			WeekID:           1,
-			HeadingPertemuan: "Pengantar Matematika",
-			BodyPertemuan:    "Materi dasar bilangan, operasi, dan persamaan.",
-			UrlVideo:         "https://youtube.com/example-video-1",
-			FileName:         "materi_minggu1.pdf",
-			FileLink:         "https://drive.google.com/file/d/abc123",
-		},
-		{
-			WeekID:           2,
-			HeadingPertemuan: "Aljabar Dasar",
-			BodyPertemuan:    "Konsep dasar variabel dan persamaan linear.",
-			UrlVideo:         "https://youtube.com/example-video-2",
-			FileName:         "materi_minggu2.pdf",
-			FileLink:         "https://drive.google.com/file/d/def456",
-		},
-	}
-
-	for _, item := range itemPembelajarans {
-		if err := db.Create(&item).Error; err != nil {
-			return err
-		}
-	}
-
-	// Buat data Assignment (1:1 dengan Week)
-	assignments := []entities.Assignment{
-		{
-			Title:       "Tugas 1 - Pengantar",
-			Description: "Kerjakan soal latihan dari PDF yang telah diberikan.",
-			Deadline:    time.Now().Add(48 * time.Hour),
-			FileName:    "tugas1.pdf",
-			FileLink:    "https://drive.google.com/file/d/tugas1",
-			WeekID:      1,
-		},
-		{
-			Title:       "Tugas 2 - Aljabar",
-			Description: "Buat ringkasan dan kerjakan latihan aljabar.",
-			Deadline:    time.Now().Add(96 * time.Hour),
-			FileName:    "tugas2.pdf",
-			FileLink:    "https://drive.google.com/file/d/tugas2",
-			WeekID:      2,
-		},
-	}
-
-	for _, assignment := range assignments {
-		if err := db.Create(&assignment).Error; err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
