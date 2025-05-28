@@ -131,6 +131,96 @@ func SeedMembers(db *gorm.DB) error {
 			User_userID:   uuid.MustParse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
 			Kelas_kelasID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
 		},
+		{
+			Username:      "Pak Joko",
+			Role:          entities.MemberRoleTeacher,
+			User_userID:   uuid.MustParse("dddddddd-dddd-dddd-dddd-dddddddddddd"),
+			Kelas_kelasID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
+		},
+		{
+			Username:      "Andi",
+			Role:          entities.MemberRoleStudent,
+			User_userID:   uuid.MustParse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
+			Kelas_kelasID: uuid.MustParse("33333333-3333-3333-3333-333333333333"),
+		},
+		{
+			Username:      "Ibu Sari",
+			Role:          entities.MemberRoleTeacher,
+			User_userID:   uuid.MustParse("ffffffff-ffff-ffff-ffff-ffffffffffff"),
+			Kelas_kelasID: uuid.MustParse("33333333-3333-3333-3333-333333333333"),
+		},
+		{
+			Username:      "Rudi",
+			Role:          entities.MemberRoleStudent,
+			User_userID:   uuid.MustParse("11111111-2222-3333-4444-555555555555"),
+			Kelas_kelasID: uuid.MustParse("44444444-4444-4444-4444-444444444444"),
+		},
+		{
+			Username:      "Ibu Tini",
+			Role:          entities.MemberRoleTeacher,
+			User_userID:   uuid.MustParse("22222222-3333-4444-5555-666666666666"),
+			Kelas_kelasID: uuid.MustParse("44444444-4444-4444-4444-444444444444"),
+		},
+		{
+			Username:      "Dewi",
+			Role:          entities.MemberRoleStudent,
+			User_userID:   uuid.MustParse("33333333-4444-5555-6666-777777777777"),
+			Kelas_kelasID: uuid.MustParse("55555555-5555-5555-5555-555555555555"),
+		},
+		{
+			Username:      "Pak Agus",
+			Role:          entities.MemberRoleTeacher,
+			User_userID:   uuid.MustParse("44444444-5555-6666-7777-888888888888"),
+			Kelas_kelasID: uuid.MustParse("55555555-5555-5555-5555-555555555555"),
+		},
+		{
+			Username:      "Lina",
+			Role:          entities.MemberRoleStudent,
+			User_userID:   uuid.MustParse("55555555-6666-7777-8888-999999999999"),
+			Kelas_kelasID: uuid.MustParse("66666666-6666-6666-6666-666666666666"),
+		},
+		{
+			Username:      "Pak Budi",
+			Role:          entities.MemberRoleTeacher,
+			User_userID:   uuid.MustParse("66666666-7777-8888-9999-000000000000"),
+			Kelas_kelasID: uuid.MustParse("66666666-6666-6666-6666-666666666666"),
+		},
+		{
+			Username:      "Rina",
+			Role:          entities.MemberRoleStudent,
+			User_userID:   uuid.MustParse("77777777-8888-9999-0000-111111111111"),
+			Kelas_kelasID: uuid.MustParse("77777777-7777-7777-7777-777777777777"),
+		},
+		{
+			Username:      "Pak Jaya",
+			Role:          entities.MemberRoleTeacher,
+			User_userID:   uuid.MustParse("88888888-9999-0000-1111-222222222222"),
+			Kelas_kelasID: uuid.MustParse("77777777-7777-7777-7777-777777777777"),
+		},
+		{
+			Username:      "Tina",
+			Role:          entities.MemberRoleStudent,
+			User_userID:   uuid.MustParse("99999999-0000-1111-2222-333333333333"),
+			Kelas_kelasID: uuid.MustParse("88888888-8888-8888-8888-888888888888"),
+		},
+		{
+			Username:      "Pak Hasan",
+			Role:          entities.MemberRoleTeacher,
+			User_userID:   uuid.MustParse("00000000-1111-2222-3333-444444444444"),
+			Kelas_kelasID: uuid.MustParse("88888888-8888-8888-8888-888888888888"),
+		},
+		{
+			Username:      "Sari",
+			Role:          entities.MemberRoleStudent,
+			User_userID:   uuid.MustParse("11111111-2222-3333-4444-555555555555"),
+			Kelas_kelasID: uuid.MustParse("99999999-9999-9999-9999-999999999999"),
+		},
+		{
+			Username:      "Pak Danu",
+			Role:          entities.MemberRoleTeacher,
+			User_userID:   uuid.MustParse("22222222-3333-4444-5555-666666666666"),
+			Kelas_kelasID: uuid.MustParse("99999999-9999-9999-9999-999999999999"),
+		},
 	}
 
 	for _, member := range members {
