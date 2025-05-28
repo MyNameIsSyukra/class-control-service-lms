@@ -16,24 +16,24 @@ type CreateKelasRequest struct {
 }
 
 type KelasUpdateRequest struct {
-	Name        string `json:"name"`
-	Tag         string `json:"tag"`
-	Description string `json:"description"`
-	Teacher     string `json:"teacher"`
-	TeacherID   uuid.UUID    `json:"teacher_id"`
+	Name        string 			`json:"name"`
+	Tag         string 			`json:"tag"`
+	Description string 			`json:"description"`
+	Teacher     string 			`json:"teacher"`
+	TeacherID   uuid.UUID    	`json:"teacher_id"`
 }
 
 type GetAllKelasRepoResponse struct {
-	Kelas              []entities.Kelas            `json:"kelas"`
-	PaginationResponse PaginationResponse `json:"pagination"`
+	Kelas              []entities.Kelas         `json:"kelas"`
+	PaginationResponse PaginationResponse 		`json:"pagination"`
 }
 
 type KelasResponse struct {
-	ID          uuid.UUID    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Teacher     string `json:"teacher"`
-	TeacherID   uuid.UUID    `json:"teacher_id"`
+	ID          uuid.UUID   	`json:"id"`
+	Name        string 			`json:"name"`
+	Description string 			`json:"description"`
+	Teacher     string 			`json:"teacher"`
+	TeacherID   uuid.UUID    	`json:"teacher_id"`
 }
 
 

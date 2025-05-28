@@ -14,12 +14,12 @@ type AssignmentSubmissionRequest struct {
 }
 
 type GetAssSubmissionStudentResponse struct {
-	ID 		 *uuid.UUID `gorm:"type:uuid" json:"id_submission,omitempty"`
+	ID 		 *uuid.UUID `gorm:"type:uuid" json:"id_submission"`
 	User_userID uuid.UUID `gorm:"type:uuid" json:"user_user_id"`	
 	Username string `json:"username"`
 	Status entities.AssStatus `json:"status"`
-	LinkFile *string `json:"link_file,omitempty"`
+	LinkFile *string `json:"link_file"`
 	Score int `json:"score"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	CreatedAt *time.Time `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
 }	

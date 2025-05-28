@@ -34,6 +34,6 @@ type WeekResponse struct {
 	WeekID           int    `json:"id"`
 	WeekNumber       int    `json:"week_number"`
 	KelasID 		uuid.UUID `json:"class_id"`
-	ItemPembelajarans *entities.ItemPembelajaran `json:"item_pembelajaran,omitempty"`
-	Assignment        *entities.Assignment        `json:"assignment,omitempty"`
+	ItemPembelajarans *entities.ItemPembelajaran `json:"item_pembelajaran"`
+	Assignment        *entities.Assignment        `json:"assignment"`
 }
