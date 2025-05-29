@@ -18,13 +18,13 @@ import (
 
 type (
 	WeekService interface {
-		GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) (dto.ClassIDResponse, error)
+		GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) ([]dto.WeekResponse, error)
 		GetWeekByID(ctx context.Context, weekID int) (dto.WeekResponseByID, error)
 
 		// teacher
 		CreateWeeklySection(ctx context.Context, request dto.CreateItemPembelajaranRequest,file io.Reader) (*entities.ItemPembelajaran, error)
 		DeleteWeeklySection(ctx context.Context, weekID int) error
-		UpdateWeeklySection(ctx context.Context,classId uuid.UUID, week_number int, req dto.UpdateItemPembelajaranRequest) (*entities.ItemPembelajaran, error)
+		UpdateWeeklySection(ctx context.Context, req dto.UpdateItemPembelajaranRequest,file io.Reader) (*entities.ItemPembelajaran, error)
 		// CreateWeeklySection(ctx context.Context, weekReq dto.WeekRequest) (*entities.Week, error)
 		// DeleteWeeklySection(ctx context.Context, weekID int) error
 	}
@@ -40,43 +40,26 @@ func NewWeekService(weekRepo database.WeekRepository, kelasRepo database.KelasRe
 
 
 
-func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) (dto.ClassIDResponse, error) {
+func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) ([]dto.WeekResponse, error) {
 	class, err := service.kelasRepo.GetById(ctx, nil, classID)
 	if err != nil {
-		return dto.ClassIDResponse{}, err
+		return []dto.WeekResponse{}, err
 	}
 	if class.ID == uuid.Nil {
-		return dto.ClassIDResponse{}, fmt.Errorf("class with ID %s not found", classID)
+		return []dto.WeekResponse{}, fmt.Errorf("class with ID %s not found", classID)
 	}
 	weeks, err := service.weekRepo.GetAllWeekByClassID(ctx, nil, classID)
 	if err != nil {
-		return dto.ClassIDResponse{
-			ID: class.ID,
-			Name: class.Name,
-			Tag: class.Tag,
-			Description: class.Description,
-			Teacher: class.Teacher,
-			TeacherID: class.TeacherID,
-			Week : nil,
-		}, err
+		return []dto.WeekResponse{}, err
 	}
 	if len(weeks) == 0 {
-		return dto.ClassIDResponse{
-			ID: class.ID,
-			Name: class.Name,
-			Tag: class.Tag,
-			Description: class.Description,
-			Teacher: class.Teacher,
-			TeacherID: class.TeacherID,
-			Week : nil,
-		}, nil
+		return []dto.WeekResponse{}, nil
 	}
 		
 	var weekResponse []dto.WeekResponse
 	for _, week := range weeks {
 		var weekRes dto.WeekResponse
 		if week.Assignment.Title == "" {
-			fmt.Println("Assignment is empty")
 			weekRes.Assignment = nil
 			weekRes.ItemPembelajarans = &week.ItemPembelajaran
 		}else if week.ItemPembelajaran.HeadingPertemuan == "" {
@@ -93,15 +76,7 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 	}		
 
 
-	return dto.ClassIDResponse{
-		ID: class.ID,
-		Name: class.Name,
-		Tag: class.Tag,
-		Description: class.Description,
-		Teacher: class.Teacher,
-		TeacherID: class.TeacherID,
-		Week: weekResponse,
-	}, nil
+	return weekResponse, nil
 }
 
 func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.WeekResponseByID, error) {
@@ -126,7 +101,6 @@ func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.We
 }
 
 func (service *weekService) CreateWeeklySection(ctx context.Context, request dto.CreateItemPembelajaranRequest, file io.Reader) (*entities.ItemPembelajaran, error) {
-	fmt.Printf("request: %s\n", request)
 	class , err := service.kelasRepo.GetById(ctx, nil, request.KelasID)
 	if err != nil {
 		return nil, fmt.Errorf("class with ID %s not found", request.KelasID)
@@ -170,17 +144,41 @@ func (service *weekService) CreateWeeklySection(ctx context.Context, request dto
 }
 
 // Update WeeklySection is not implemented in the original code, so we will not implement it here.
-func (service *weekService) UpdateWeeklySection(ctx context.Context,classId uuid.UUID, week_number int, req dto.UpdateItemPembelajaranRequest) (*entities.ItemPembelajaran, error) {
-	class, err := service.kelasRepo.GetById(ctx, nil, classId)
+func (service *weekService) UpdateWeeklySection(ctx context.Context,req dto.UpdateItemPembelajaranRequest, file io.Reader) (*entities.ItemPembelajaran, error) {
+	oldItem, err := service.weekRepo.GetItemPembelajaran(ctx, nil, req.WeekID)
 	if err != nil {
-		return nil, fmt.Errorf("class with ID %s not found", classId)
+		return nil, fmt.Errorf("failed to get old item pembelajaran: %w", err)
 	}
-	if class.ID == uuid.Nil {
-		return nil, fmt.Errorf("class with ID %s not found", classId)
+	if file != nil {
+		deleteURL := oldItem.FileLink
+		if (deleteURL != "") {
+			delReq, err := http.NewRequest(http.MethodDelete, deleteURL, nil)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create delete request: %w", err)
+			}
+			client := &http.Client{}
+			resp, err := client.Do(delReq)
+			if err != nil {
+				return nil, fmt.Errorf("failed to delete old file: %w", err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusNoContent {
+				respBody, _ := io.ReadAll(resp.Body)
+				return nil, fmt.Errorf("failed to delete old file with status %d: %s", resp.StatusCode, string(respBody))
+			}
+		}
+		fileURL, err := service.uploadFile(file, req.FileName)
+		if err != nil {
+			return nil, err
+		}
+		req.FileLink = fileURL
+	} else {
+		fmt.Printf("No file provided\n")
+		req.FileLink = ""
+		req.FileName = ""
 	}
-	
 	item := &entities.ItemPembelajaran{
-		WeekID: week_number,
+		WeekID: req.WeekID,
 		HeadingPertemuan: req.HeadingPertemuan,
 		BodyPertemuan: req.BodyPertemuan,
 		UrlVideo: req.UrlVideo,

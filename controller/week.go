@@ -116,29 +116,54 @@ func (controller *weekController) CreateWeeklySection(ctx *gin.Context) {
 }
 
 func (controller *weekController) UpdateWeeklySection(ctx *gin.Context) {
-	KelasID := ctx.Query("kelas_id")
-	parsedKelasID, err := uuid.Parse(KelasID)
-	if err != nil {
+	var req dto.InitialUpdateItemPembelajaranRequest
+	if err := ctx.ShouldBind(&req); err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(400, res)
 		return
-	}
-	WeekNumber := ctx.Query("week_number")
-	parsedWeekNumber, err := strconv.Atoi(WeekNumber)
-	if err != nil {
-		res := utils.FailedResponse(err.Error())
-		ctx.JSON(400, res)
-		return
+	}	
+	processedReq := dto.UpdateItemPembelajaranRequest{
+		WeekID:           req.WeekID,
+		HeadingPertemuan: req.HeadingPertemuan,
+		BodyPertemuan:    req.BodyPertemuan,
+		UrlVideo:         req.UrlVideo,
 	}
 
-	var req dto.UpdateItemPembelajaranRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		res := utils.FailedResponse(err.Error())
-		ctx.JSON(400, res)
+	var file io.Reader
+	var fileName string
+	fileCount := 0
+	if ctx.Request.MultipartForm != nil && ctx.Request.MultipartForm.File != nil {
+		for _, files := range ctx.Request.MultipartForm.File {
+			fileCount += len(files)
+		}
+	}
+	// LIMIT: Hanya boleh 1 file
+	if fileCount > 1 {
+		res := utils.FailedResponse("Only one file upload is allowed")
+		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
+	// Coba ambil file dari form, jika ada
+	fileHeader, err := ctx.FormFile("file")
+	if err == nil {
+		openedFile, err := fileHeader.Open()
+		if err != nil {
+			res := utils.FailedResponse("unable to open file")
+			ctx.JSON(http.StatusBadRequest, res)
+			return
+		}
+		defer openedFile.Close()
+		file = openedFile
+		fileName = fileHeader.Filename
+	} else {
+		// File tidak ada, set nil (opsional)
+		file = nil
+		fileName = ""
+	}
 
-	item, err := controller.weekService.UpdateWeeklySection(ctx.Request.Context(),parsedKelasID,parsedWeekNumber, req)
+	processedReq.FileName = fileName
+
+	item, err := controller.weekService.UpdateWeeklySection(ctx.Request.Context(),processedReq, file)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(500, res)

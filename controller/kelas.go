@@ -70,7 +70,7 @@ func (service *kelasController) GetById(ctx *gin.Context) {
 	}
 	kelas, err := service.kelasService.GetById(ctx.Request.Context(), id)
 	if err != nil {
-		res := response.FailedResponse("Failed to get class")
+		res := response.FailedResponse("Class not found")
 		ctx.JSON(404, res)
 		return
 	}

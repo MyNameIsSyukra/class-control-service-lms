@@ -17,8 +17,6 @@ type ItemPembelajaranRequest struct {
 	HeadingPertemuan string `form:"headingPertemuan" json:"headingPertemuan" binding:"required"`
 	BodyPertemuan    string `form:"bodyPertemuan" json:"bodyPertemuan" binding:"required"`
 	UrlVideo         string `form:"urlVideo" json:"urlVideo"`
-	FileName         string `json:"fileName"`
-	FileLink         string `json:"file_link"`
 }
 
 type CreateItemPembelajaranRequest struct {
@@ -30,7 +28,16 @@ type CreateItemPembelajaranRequest struct {
     FileName         string    `json:"fileName"`
     FileLink         string    `json:"file_link"`
 }
+
+type InitialUpdateItemPembelajaranRequest struct {
+	WeekID 		int    `form:"week_id"`
+	HeadingPertemuan string `form:"headingPertemuan"`
+	BodyPertemuan    string `form:"bodyPertemuan"`
+	UrlVideo         string `form:"urlVideo"`
+}
+
 type UpdateItemPembelajaranRequest struct {
+	WeekID           int    `json:"week_id"` // same as Week.ID	
 	HeadingPertemuan string `json:"headingPertemuan"`
 	BodyPertemuan    string `json:"bodyPertemuan"`
 	UrlVideo         string `json:"urlVideo"`

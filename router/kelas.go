@@ -12,13 +12,13 @@ func Kelas(route *gin.Engine, injector *do.Injector){
 
 	routes := route.Group("/kelas")
 	{
-		routes.GET("/", kelasController.GetById)
+		routes.GET("", kelasController.GetById)
 	}
 	routes = route.Group("/kelas/admin")
 	{
 		routes.POST("", kelasController.Create)
 		routes.GET("", kelasController.GetAll)
-		routes.PUT("/", kelasController.Update)
-		routes.DELETE("/", kelasController.Delete)
+		routes.PUT("", kelasController.Update)
+		routes.DELETE("", kelasController.Delete)
 	}
 }
