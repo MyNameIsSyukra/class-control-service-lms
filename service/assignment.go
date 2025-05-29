@@ -22,7 +22,7 @@ type (
 	AssignmentService interface {
 		CreateAssignment(ctx context.Context, request dto.CreateAssignmentRequest,file io.Reader) (*entities.Assignment, error)
 		GetAssignmentByID(ctx context.Context, assignmentID int) (entities.Assignment, error)
-		UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) error
+		UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) (*entities.Assignment,error)
 
 		// student
 		GetAssignmentByIDStudentID(ctx context.Context, assignmentID int, userID uuid.UUID) (dto.StudentGetAssignmentByIDResponse, error)
@@ -136,34 +136,34 @@ func (service *assignmentService) CreateAssignment(ctx context.Context, request 
 	return newAssignment, nil
 }
 
-func (service *assignmentService) UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) error {
+func (service *assignmentService) UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) (*entities.Assignment,error) {
 	fmt.Printf("Starting assignment update\n")
 	// check if assignment exists
 	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, request.AssignmentID)
 	if err != nil {
-		return fmt.Errorf("assignment not found: %w", err)
+		return nil,fmt.Errorf("assignment not found: %w", err)
 	}
 	if file != nil {
 		delurl := assignment.FileLink
 		if delurl != "" {
 			delreq, err := http.NewRequest(http.MethodDelete, delurl, nil)
 			if err != nil {
-				return fmt.Errorf("failed to create delete request: %w", err)
+				return nil,fmt.Errorf("failed to create delete request: %w", err)
 			}
 			client := &http.Client{}
 			resp, err := client.Do(delreq)
 			if err != nil {
-				return fmt.Errorf("failed to delete old file: %w", err)
+				return nil,fmt.Errorf("failed to delete old file: %w", err)
 			}
 			defer resp.Body.Close()
 			if resp.StatusCode != http.StatusNoContent {
 				respBody, _ := io.ReadAll(resp.Body)
-				return fmt.Errorf("failed to delete old file with status %d: %s", resp.StatusCode, string(respBody))
+				return nil,fmt.Errorf("failed to delete old file with status %d: %s", resp.StatusCode, string(respBody))
 			}
 		}
 		fileURL, err := service.uploadFile(file, request.FileName)
 		if err != nil {
-			return fmt.Errorf("failed to upload new file: %w", err)
+			return nil,fmt.Errorf("failed to upload new file: %w", err)
 		}
 		request.FileLink = fileURL
 	} else {
@@ -171,13 +171,51 @@ func (service *assignmentService) UpdateAssignment(ctx context.Context, request 
 		request.FileLink = assignment.FileLink
 		request.FileName = assignment.FileName
 	}
+	var updates dto.ProrcessedUpdateAssignmentRequest
+	updates.AssignmentID = request.AssignmentID
+	updates.WeekID = request.WeekID
+	if request.Title != "" {
+		updates.Title = request.Title
+	} else {
+		updates.Title = assignment.Title
+	}
+	if request.Description != "" {
+		updates.Description = request.Description
+	} else {
+		updates.Description = assignment.Description
+	}
+	if !request.Deadline.IsZero() {
+		updates.Deadline = request.Deadline
+	} else {
+		updates.Deadline = assignment.Deadline
+	}
+	if request.FileName != "" {
+		updates.FileName = request.FileName
+	} else {
+		updates.FileName = assignment.FileName
+	}
+	if request.FileLink != "" {
+		updates.FileLink = request.FileLink
+	} else {
+		updates.FileLink = assignment.FileLink
+	}
+
 	// Update assignment in database
-	_, err = service.assignmentRepo.UpdateAssignment(ctx, nil, request.AssignmentID, request)
+	updated, err := service.assignmentRepo.UpdateAssignment(ctx, nil, request.AssignmentID, updates)
 	if err != nil {
-		return fmt.Errorf("failed to update assignment: %w", err)
+		return nil,fmt.Errorf("failed to update assignment: %w", err)
 	}
 	fmt.Printf("Assignment updated successfully\n")
-	return nil
+	return &entities.Assignment{
+		Model: updated.Model,
+		WeekID:      updated.WeekID,
+		Title:       updated.Title,
+		Description: updated.Description,
+		Deadline:    updated.Deadline,
+		FileName:    updated.FileName,
+		FileLink:    updated.FileLink,
+	}, nil
+	
 }
 
 func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignmentID int) (entities.Assignment, error) {

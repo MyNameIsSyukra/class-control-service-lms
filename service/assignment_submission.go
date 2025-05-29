@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -52,6 +53,9 @@ func (service *assignmentSubmissionService) CreateAssignmentSubmission(ctx conte
 	if err != nil{
 		return &entities.AssignmentSubmission{}, err
 	}
+	if assignment.Deadline.Before(time.Now()) {
+		return &entities.AssignmentSubmission{}, fmt.Errorf("assignment deadline has passed")
+	}
 	
 	member, err := service.memberRepo.GetMemberByClassIDAndUserID(ctx,nil,assignment.Week.Kelas_idKelas, request.UserID)
 	if err != nil {
@@ -68,7 +72,7 @@ func (service *assignmentSubmissionService) CreateAssignmentSubmission(ctx conte
 	if file == nil {
 		return &entities.AssignmentSubmission{}, fmt.Errorf("file is required")
 	}
-	IDFile, err := service.uploadFile(file, request.FileName)
+	IDFile, err := service.uploadFile(file, request.FileName, request.UserID.String())
 	if err != nil {
 		return &entities.AssignmentSubmission{}, fmt.Errorf("failed to upload file: %w", err)
 	}
@@ -158,6 +162,7 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 				AssignmentID: assignmentID,
 				IDFile: "",
 				Score: 0,
+				FileName: "",
 				Status: entities.StatusTodo,
 				CreatedAt: member.CreatedAt,
 				UpdatedAt: member.UpdatedAt,
@@ -167,6 +172,7 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 				ID	:submissionMap[member.User_userID].ID,
 				UserID: member.User_userID,
 				AssignmentID: assignmentID,
+				FileName: submissionMap[member.User_userID].FileName,
 				IDFile: submissionMap[member.User_userID].IDFile,
 				Score: submissionMap[member.User_userID].Score,
 				Status: submissionMap[member.User_userID].Status,
@@ -189,18 +195,20 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 			result.Username = member.Username
 			result.Status = entities.AssStatus("todo")
 			result.LinkFile = nil
+			result.Filename = nil
 			result.Score = 0
 			result.CreatedAt = nil
 			result.UpdatedAt = nil
 		}else {
 			params := url.Values{}
-			params.Add("id", mem.ID.String())
-			link := os.Getenv("CONTENT_URL") + "teacher/student-assignment/?" + params.Encode() 
+			params.Add("id", mem.IDFile)
+			link := os.Getenv("CONTENT_URL") + "/teacher/student-assignment/?" + params.Encode() 
 			result.ID = &mem.ID
 			result.User_userID = member.User_userID
 			result.Username = member.Username
 			result.Status = mem.Status
 			result.LinkFile = &link
+			result.Filename = &mem.FileName
 			result.Score = mem.Score
 			result.CreatedAt = &mem.CreatedAt
 			result.UpdatedAt = &mem.UpdatedAt
@@ -252,7 +260,7 @@ func (service *assignmentSubmissionService) DeleteAssignmentSubmissionByID(ctx c
 		
 
 
-func (service *assignmentSubmissionService) uploadFile(file io.Reader, fileName string) (string, error) {
+func (service *assignmentSubmissionService) uploadFile(file io.Reader, fileName string, userID string) (string, error) {
 	type FileUploadResponse struct {
 		Id string `json:"id"`
 	}
@@ -282,7 +290,9 @@ func (service *assignmentSubmissionService) uploadFile(file io.Reader, fileName 
 	}
 	
 	// Prepare HTTP request
-	url := os.Getenv("CONTENT_URL") + "/item-pembelajaran/"
+	params := url.Values{}
+	params.Add("userID", userID)
+	url := os.Getenv("CONTENT_URL") + "/student-assignment/?" + params.Encode()
 	req, err := http.NewRequest(http.MethodPost, url, &buf)
 	if err != nil {
 		return "", fmt.Errorf("failed to create HTTP request: %w", err)

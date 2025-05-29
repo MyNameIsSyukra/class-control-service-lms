@@ -177,6 +177,29 @@ func (service *weekService) UpdateWeeklySection(ctx context.Context,req dto.Upda
 		req.FileLink = ""
 		req.FileName = ""
 	}
+	if req.HeadingPertemuan == "" {
+		req.HeadingPertemuan = oldItem.HeadingPertemuan
+	}
+	if req.BodyPertemuan == "" {
+		req.BodyPertemuan = oldItem.BodyPertemuan
+	}
+	if req.UrlVideo == "" {
+		req.UrlVideo = oldItem.UrlVideo
+	}
+	// fmt.Printf("Updating item pembelajaran with WeekID: %d\n", req.WeekID)
+	if req.WeekID == 0 {
+		return nil, fmt.Errorf("WeekID cannot be zero")
+	}
+	if req.WeekID != oldItem.WeekID {
+		return nil, fmt.Errorf("WeekID mismatch: expected %d, got %d", oldItem.WeekID, req.WeekID)
+	}
+	if req.FileName == "" {
+		req.FileName = oldItem.FileName
+	}
+	// fmt.Printf("Creating new item pembelajaran with WeekID: %d\n", req.WeekID)
+	if req.FileLink == "" {
+		req.FileLink = oldItem.FileLink
+	}
 	item := &entities.ItemPembelajaran{
 		WeekID: req.WeekID,
 		HeadingPertemuan: req.HeadingPertemuan,

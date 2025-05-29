@@ -87,6 +87,7 @@ func (repo *assignmentSubmissionRepository) UpdateStudentSubmissionScore(ctx con
 		AssignmentID: assignmentSubmission.AssignmentID,
 		UserID:       assignmentSubmission.UserID,
 		IDFile:       assignmentSubmission.IDFile,
+		FileName:     assignmentSubmission.FileName,
 		Status: 	 assignmentSubmission.Status,
 		Score:        assignmentSubmission.Score,
 		CreatedAt:     assignmentSubmission.CreatedAt,

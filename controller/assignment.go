@@ -127,13 +127,13 @@ func (controller *assignmentController) UpdateAssignment(ctx *gin.Context) {
 		FileName:     fileName,
 		FileLink:     "",
 	}
-	err = controller.assignmentService.UpdateAssignment(ctx.Request.Context(), processedReq,file)
+	updated,err := controller.assignmentService.UpdateAssignment(ctx.Request.Context(), processedReq,file)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
-	res := utils.SuccessResponse(err)
+	res := utils.SuccessResponse(updated)
 	ctx.JSON(http.StatusOK, res)
 }
 

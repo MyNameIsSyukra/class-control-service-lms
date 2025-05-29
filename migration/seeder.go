@@ -17,273 +17,263 @@ func Seeder()error{
 	db.AutoMigrate(&entities.Kelas{}, &entities.Member{}, &entities.ItemPembelajaran{})
 	// UUID tetap
 	
-	// Seed data kelas
-	if err := SeedKelas(db); err != nil {
-		fmt.Println("Gagal melakukan seeding kelas:", err)
-	}
-	// Seed data members
-	if err := SeedMembers(db); err != nil {
-		fmt.Println("Gagal melakukan seeding members:", err)
-	}
-	// Seed data week content
-	if err := SeedWeekContent(db); err != nil {
-		fmt.Println("Gagal melakukan seeding week content:", err)
-	}
+	// Generate static data for consistency across services
+	fmt.Println("Generating static shared data...")
+	sharedClasses, sharedUsers := GenerateStaticData()
 
-	fmt.Println("Seeder selesai dijalankan.")
+	// Seed Class Control service
+	SeedClassControlData(db, sharedClasses, sharedUsers)
+
+	// Print static UUIDs for reference
+	PrintStaticUUIDs()
+
+	fmt.Println("\n========== CLASS CONTROL SEEDING COMPLETED ==========")
+	fmt.Println("Data seeded successfully with static UUID references!")
+	fmt.Println("Use the same static UUIDs in Assessment service seeder for consistency.")
 	return nil
 }
+var (
+	// Class IDs (will be used as ClassID in Assessment service)
+	ClassWebProgID   = uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+	ClassDatabaseID  = uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
+	ClassAlgorithmID = uuid.MustParse("550e8400-e29b-41d4-a716-446655440003")
 
-// create seeder class form data below	
-func SeedKelas(db *gorm.DB) error {
-	kelasData := []entities.Kelas{
-		{
-			ID: uuid.MustParse("11111111-1111-1111-1111-111111111111"), // UUID dummy, ganti dengan UUID asli
-			Name:        "Mathematics 101",
-			Tag:         "Class A",
-			Description: "Master the fundamentals of mathematics",
-			Teacher:     "John Doe",
-			TeacherID:   uuid.MustParse("11111111-1111-1111-1111-111111111111"),
-		},
-		{
-			ID: uuid.MustParse("22222222-2222-2222-2222-222222222222"), // UUID dummy, ganti dengan UUID asli
-			Name:        "Introduction to Physics",
-			Tag:         "Class B",
-			Description: "Learn the basic principles of physics",
-			Teacher:     "Jane Smith",
-			TeacherID:   uuid.MustParse("22222222-2222-2222-2222-222222222222"),
-		},
-		{
-			ID: uuid.MustParse("33333333-3333-3333-3333-333333333333"), // UUID dummy, ganti dengan UUID asli
-			Name:        "Computer Science Basics",
-			Tag:         "Class C",
-			Description: "Enhance your programming skills through this class",
-			Teacher:     "Alice Johnson",
-			TeacherID:   uuid.MustParse("33333333-3333-3333-3333-333333333333"),
-		},
-		{
-			ID: uuid.MustParse("44444444-4444-4444-4444-444444444444"), // UUID dummy, ganti dengan UUID asli
-			Name:        "English Literature",
-			Tag:         "Class D",
-			Description: "Explore classic and modern literature",
-			Teacher:     "Bob Williams",
-			TeacherID:   uuid.MustParse("44444444-4444-4444-4444-444444444444"),
-		},
-		{
-			ID: uuid.MustParse("55555555-5555-5555-5555-555555555555"), // UUID dummy, ganti dengan UUID asli
-			Name:        "History of Art",
-			Tag:         "Class E",
-			Description: "A journey through the history of art and its movements",
-			Teacher:     "Carla White",
-			TeacherID:   uuid.MustParse("55555555-5555-5555-5555-555555555555"),
-		},
-		{
-			ID: uuid.MustParse("66666666-6666-6666-6666-666666666666"), // UUID dummy, ganti dengan UUID asli
-			Name:        "Biology 101",
-			Tag:         "Class F",
-			Description: "Understand the basics of biology and life sciences",
-			Teacher:     "David Brown",
-			TeacherID:   uuid.MustParse("66666666-6666-6666-6666-666666666666"),
-		},
-		{
-			ID: uuid.MustParse("77777777-7777-7777-7777-777777777777"), // UUID dummy, ganti dengan UUID asli
-			Name:        "Chemistry Fundamentals",
-			Tag:         "Class G",
-			Description: "Dive into the world of chemistry and its applications",
-			Teacher:     "Emily Green",
-			TeacherID:   uuid.MustParse("77777777-7777-7777-7777-777777777777"),
-		},
-		{
-			ID: uuid.MustParse("88888888-8888-8888-8888-888888888888"), // UUID dummy, ganti dengan UUID asli
-			Name:        "Introduction to Psychology",
-			Tag:         "Class H",
-			Description: "Discover the basics of human behavior and mind",
-			Teacher:     "Frank Black",
-			TeacherID:   uuid.MustParse("88888888-8888-8888-8888-888888888888"),
-		},
-		{
-			ID: uuid.MustParse("99999999-9999-9999-9999-999999999999"), // UUID dummy, ganti dengan UUID asli
-			Name:        "Economics 101",
-			Tag:         "Class I",
-			Description: "Learn the principles of economics and its impact on society",
-			Teacher:     "Grace Blue",
-			TeacherID:   uuid.MustParse("99999999-9999-9999-9999-999999999999"),
-		},
-	}
+	// Teacher IDs
+	TeacherAhmadID = uuid.MustParse("550e8400-e29b-41d4-a716-446655440101")
+	TeacherSitiID  = uuid.MustParse("550e8400-e29b-41d4-a716-446655440102")
+	TeacherBudiID  = uuid.MustParse("550e8400-e29b-41d4-a716-446655440103")
 
-	for _, kelas := range kelasData {
-		if err := db.Create(&kelas).Error; err != nil {
-			return err
-		}
-	}
+	// Student IDs (will be used as UserID in Assessment service)
+	StudentAliceID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440201")
+	StudentBobID      = uuid.MustParse("550e8400-e29b-41d4-a716-446655440202")
+	StudentCharlieID  = uuid.MustParse("550e8400-e29b-41d4-a716-446655440203")
+	StudentDianaID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440204")
+	StudentEdwardID   = uuid.MustParse("550e8400-e29b-41d4-a716-446655440205")
+	StudentFionaID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440206")
+	StudentGeorgeID   = uuid.MustParse("550e8400-e29b-41d4-a716-446655440207")
+	StudentHannahID   = uuid.MustParse("550e8400-e29b-41d4-a716-446655440208")
+	StudentIvanID     = uuid.MustParse("550e8400-e29b-41d4-a716-446655440209")
+	StudentJuliaID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440210")
+	StudentKevinID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440211")
+	StudentLindaID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440212")
+	StudentMichaelID  = uuid.MustParse("550e8400-e29b-41d4-a716-446655440213")
+	StudentNancyID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440214")
+	StudentOscarID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440215")
+)
 
-	return nil
+// ========== SHARED DATA STRUCTURE ==========
+type SharedClassData struct {
+	ClassID     uuid.UUID
+	Name        string
+	Tag         string
+	Description string
+	Teacher     string
+	TeacherID   uuid.UUID
 }
 
-func SeedMembers(db *gorm.DB) error {
-	members := []entities.Member{
+type SharedUserData struct {
+	UserID   uuid.UUID
+	Username string
+	Role     entities.MemberRole
+	ClassID  uuid.UUID
+}
+func GenerateStaticData() ([]SharedClassData, []SharedUserData) {
+	// Generate consistent class data with static UUIDs
+	classes := []SharedClassData{
 		{
-			Username:      "Bambang",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), // ganti dengan UUID user asli
-			Kelas_kelasID: uuid.MustParse("11111111-1111-1111-1111-111111111111"), // ganti dengan UUID kelas asli
+			ClassID:     ClassWebProgID,
+			Name:        "Pemrograman Web",
+			Tag:         "PWEB",
+			Description: "Mata kuliah pemrograman web menggunakan teknologi modern",
+			Teacher:     "Dr. Ahmad Santoso",
+			TeacherID:   TeacherAhmadID,
 		},
 		{
-			Username:      "Bu Nanik",
-			Role:          entities.MemberRoleTeacher,
-			User_userID:   uuid.MustParse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-			Kelas_kelasID: uuid.MustParse("11111111-1111-1111-1111-111111111111"),
+			ClassID:     ClassDatabaseID,
+			Name:        "Basis Data",
+			Tag:         "BD",
+			Description: "Mata kuliah tentang konsep dan implementasi basis data",
+			Teacher:     "Prof. Siti Nurhaliza",
+			TeacherID:   TeacherSitiID,
 		},
 		{
-			Username:      "Siti",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-			Kelas_kelasID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
-		},
-		{
-			Username:      "Pak Joko",
-			Role:          entities.MemberRoleTeacher,
-			User_userID:   uuid.MustParse("dddddddd-dddd-dddd-dddd-dddddddddddd"),
-			Kelas_kelasID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
-		},
-		{
-			Username:      "Andi",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
-			Kelas_kelasID: uuid.MustParse("33333333-3333-3333-3333-333333333333"),
-		},
-		{
-			Username:      "Ibu Sari",
-			Role:          entities.MemberRoleTeacher,
-			User_userID:   uuid.MustParse("ffffffff-ffff-ffff-ffff-ffffffffffff"),
-			Kelas_kelasID: uuid.MustParse("33333333-3333-3333-3333-333333333333"),
-		},
-		{
-			Username:      "Rudi",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("11111111-2222-3333-4444-555555555555"),
-			Kelas_kelasID: uuid.MustParse("11111111-1111-1111-1111-111111111111"),
-		},
-		{
-			Username:      "Ibu Tini",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("22222222-3333-4444-5555-666666666666"),
-			Kelas_kelasID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
-		},
-		{
-			Username:      "Dewi",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("33333333-4444-5555-6666-777777777777"),
-			Kelas_kelasID: uuid.MustParse("33333333-3333-3333-3333-333333333333"),
-		},
-		{
-			Username:      "Pak Agus",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("44444444-5555-6666-7777-888888888888"),
-			Kelas_kelasID: uuid.MustParse("44444444-4444-4444-4444-444444444444"),
-		},
-		{
-			Username:      "Lina",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("55555555-6666-7777-8888-999999999999"),
-			Kelas_kelasID: uuid.MustParse("55555555-5555-5555-5555-555555555555"),
-		},
-		{
-			Username:      "Pak Budi",
-			Role:          entities.MemberRoleTeacher,
-			User_userID:   uuid.MustParse("66666666-7777-8888-9999-000000000000"),
-			Kelas_kelasID: uuid.MustParse("66666666-6666-6666-6666-666666666666"),
-		},
-		{
-			Username:      "Rina",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("77777777-8888-9999-0000-111111111111"),
-			Kelas_kelasID: uuid.MustParse("77777777-7777-7777-7777-777777777777"),
-		},
-		{
-			Username:      "Pak Jaya",
-			Role:          entities.MemberRoleTeacher,
-			User_userID:   uuid.MustParse("88888888-9999-0000-1111-222222222222"),
-			Kelas_kelasID: uuid.MustParse("77777777-7777-7777-7777-777777777777"),
-		},
-		{
-			Username:      "Tina",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("99999999-0000-1111-2222-333333333333"),
-			Kelas_kelasID: uuid.MustParse("88888888-8888-8888-8888-888888888888"),
-		},
-		{
-			Username:      "Pak Hasan",
-			Role:          entities.MemberRoleTeacher,
-			User_userID:   uuid.MustParse("00000000-1111-2222-3333-444444444444"),
-			Kelas_kelasID: uuid.MustParse("88888888-8888-8888-8888-888888888888"),
-		},
-		{
-			Username:      "Sari",
-			Role:          entities.MemberRoleStudent,
-			User_userID:   uuid.MustParse("11111111-2222-3333-4444-555555555555"),
-			Kelas_kelasID: uuid.MustParse("99999999-9999-9999-9999-999999999999"),
-		},
-		{
-			Username:      "Pak Danu",
-			Role:          entities.MemberRoleTeacher,
-			User_userID:   uuid.MustParse("22222222-3333-4444-5555-666666666666"),
-			Kelas_kelasID: uuid.MustParse("99999999-9999-9999-9999-999999999999"),
+			ClassID:     ClassAlgorithmID,
+			Name:        "Algoritma dan Struktur Data",
+			Tag:         "ASD",
+			Description: "Mata kuliah fundamental tentang algoritma dan struktur data",
+			Teacher:     "Dr. Budi Raharjo",
+			TeacherID:   TeacherBudiID,
 		},
 	}
 
-	for _, member := range members {
-		if err := db.Create(&member).Error; err != nil {
-			return err
-		}
+	// Generate user data with static UUIDs
+	var users []SharedUserData
+
+	// Add teachers
+	users = append(users, []SharedUserData{
+		{UserID: TeacherAhmadID, Username: "Dr. Ahmad Santoso", Role: entities.MemberRoleTeacher, ClassID: ClassWebProgID},
+		{UserID: TeacherSitiID, Username: "Prof. Siti Nurhaliza", Role: entities.MemberRoleTeacher, ClassID: ClassDatabaseID},
+		{UserID: TeacherBudiID, Username: "Dr. Budi Raharjo", Role: entities.MemberRoleTeacher, ClassID: ClassAlgorithmID},
+	}...)
+
+	// Add students with static UUIDs
+	studentData := []struct {
+		ID       uuid.UUID
+		Username string
+		ClassID  uuid.UUID
+	}{
+		// Web Programming Students
+		{StudentAliceID, "Alice Johnson", ClassWebProgID},
+		{StudentBobID, "Bob Smith", ClassWebProgID},
+		{StudentCharlieID, "Charlie Brown", ClassWebProgID},
+		{StudentDianaID, "Diana Prince", ClassWebProgID},
+		{StudentEdwardID, "Edward Norton", ClassWebProgID},
+
+		// Database Students
+		{StudentFionaID, "Fiona Green", ClassDatabaseID},
+		{StudentGeorgeID, "George Wilson", ClassDatabaseID},
+		{StudentHannahID, "Hannah Davis", ClassDatabaseID},
+		{StudentIvanID, "Ivan Petrov", ClassDatabaseID},
+		{StudentJuliaID, "Julia Roberts", ClassDatabaseID},
+
+		// Algorithm Students
+		{StudentKevinID, "Kevin Hart", ClassAlgorithmID},
+		{StudentLindaID, "Linda Carter", ClassAlgorithmID},
+		{StudentMichaelID, "Michael Jordan", ClassAlgorithmID},
+		{StudentNancyID, "Nancy Drew", ClassAlgorithmID},
+		{StudentOscarID, "Oscar Wilde", ClassAlgorithmID},
 	}
 
-	return nil
+	for _, student := range studentData {
+		users = append(users, SharedUserData{
+			UserID:   student.ID,
+			Username: student.Username,
+			Role:     entities.MemberRoleStudent,
+			ClassID:  student.ClassID,
+		})
+	}
+
+	return classes, users
 }
 
-func SeedWeekContent(db *gorm.DB) error {
-	// UUID dummy untuk kelas (ubah dengan UUID kelas asli dari DB kamu)
-	for i := 1; i <= 9; i++ {
-		classID := uuid.MustParse(fmt.Sprintf("%d%d%d%d%d%d%d%d-%d%d%d%d-%d%d%d%d-%d%d%d%d-%d%d%d%d%d%d%d%d%d%d%d%d",i, i, i, i, i, i, i, i,i, i, i, i,i, i, i, i,i, i, i, i,i, i, i, i, i, i, i, i, i, i, i, i)) // Ganti dengan UUID kelas yang sesuai
-		weeks := []entities.Week{
-			{
-				WeekNumber:    1,
-				Kelas_idKelas: classID,
-			},
-			{
-				WeekNumber:    2,
-				Kelas_idKelas: classID,
-			},
+// ========== SEEDER FUNCTIONS ==========
+func SeedClassControlData(db *gorm.DB, sharedClasses []SharedClassData, sharedUsers []SharedUserData) {
+	fmt.Println("Seeding Class Control data...")
+
+	// Seed Kelas using shared data
+	for _, classData := range sharedClasses {
+		class := entities.Kelas{
+			ID:          classData.ClassID,
+			Name:        classData.Name,
+			Tag:         classData.Tag,
+			Description: classData.Description,
+			Teacher:     classData.Teacher,
+			TeacherID:   classData.TeacherID,
 		}
-		for _, week := range weeks {
-			if err := db.Create(&week).Error; err != nil {
-				return err
+		db.Create(&class)
+	}
+
+	// Seed Members using shared data
+	for _, userData := range sharedUsers {
+		member := entities.Member{
+			Username:      userData.Username,
+			Role:          userData.Role,
+			User_userID:   userData.UserID,
+			Kelas_kelasID: userData.ClassID,
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+		}
+		db.Create(&member)
+	}
+
+	// Seed Weeks and related data
+	for _, classData := range sharedClasses {
+		for weekNum := 1; weekNum <= 4; weekNum++ {
+			week := entities.Week{
+				WeekNumber:    weekNum,
+				Kelas_idKelas: classData.ClassID,
 			}
-			// Seed item pembelajaran untuk setiap minggu
+			db.Create(&week)
+
+			// Seed ItemPembelajaran
 			itemPembelajaran := entities.ItemPembelajaran{
-				WeekID: week.ID,
-				HeadingPertemuan: fmt.Sprintf("Pertemuan %d", week.WeekNumber),
-				BodyPertemuan: fmt.Sprintf("Materi untuk pertemuan %d", week.WeekNumber),
-				UrlVideo: fmt.Sprintf("https://example.com/video_pertemuan_%d.mp4", week.WeekNumber),
-				FileName: fmt.Sprintf("file_pertemuan_%d.pdf", week.WeekNumber),
-				FileLink: fmt.Sprintf("https://example.com/file_pertemuan_%d.pdf", week.WeekNumber),
+				WeekID:           week.ID,
+				HeadingPertemuan: fmt.Sprintf("Pertemuan %d - %s", weekNum, classData.Name),
+				BodyPertemuan:    fmt.Sprintf("Materi pembelajaran minggu ke-%d untuk mata kuliah %s", weekNum, classData.Name),
+				UrlVideo:         fmt.Sprintf("https://youtube.com/watch?v=example_%s_week_%d", classData.Tag, weekNum),
+				FileName:         fmt.Sprintf("materi_%s_week_%d.pdf", classData.Tag, weekNum),
+				FileLink:         fmt.Sprintf("https://drive.google.com/file/%s_week_%d", classData.Tag, weekNum),
 			}
-			if err := db.Create(&itemPembelajaran).Error; err != nil {
-				return err
-			}
-			// Seed assignment untuk setiap minggu
-			assignment := entities.Assignment{
-				Title: fmt.Sprintf("Tugas Minggu %d", week.WeekNumber),
-				Description: fmt.Sprintf("Deskripsi tugas untuk minggu %d", week.WeekNumber),
-				Deadline: time.Now().AddDate(0, 0, 7), // Deadline 7 hari dari sekarang
-				FileName: fmt.Sprintf("tugas_minggu_%d.pdf", week.WeekNumber),
-				FileLink: fmt.Sprintf("https://example.com/tugas_minggu_%d.pdf", week.WeekNumber),
-				WeekID: week.ID,
-			}
-			if err := db.Create(&assignment).Error; err != nil {
-				return err
+			db.Create(&itemPembelajaran)
+
+			// Seed Assignment (every 2 weeks)
+			if weekNum%2 == 0 {
+				assignment := entities.Assignment{
+					Title:       fmt.Sprintf("Tugas %s - Minggu %d", classData.Name, weekNum),
+					Description: fmt.Sprintf("Tugas praktikum untuk minggu ke-%d mata kuliah %s", weekNum, classData.Name),
+					Deadline:    time.Now().AddDate(0, 0, 7),
+					FileName:    fmt.Sprintf("tugas_%s_week_%d.pdf", classData.Tag, weekNum),
+					FileLink:    fmt.Sprintf("https://drive.google.com/assignment_%s_week_%d", classData.Tag, weekNum),
+					WeekID:      week.ID,
+				}
+				db.Create(&assignment)
+
+				// Seed AssignmentSubmissions using shared user data
+				studentsInClass := make([]SharedUserData, 0)
+				for _, user := range sharedUsers {
+					if user.ClassID == classData.ClassID && user.Role == entities.MemberRoleStudent {
+						studentsInClass = append(studentsInClass, user)
+					}
+				}
+
+				// Create submissions for first 3 students in class
+				for j := 0; j < 3 && j < len(studentsInClass); j++ {
+					submission := entities.AssignmentSubmission{
+						AssignmentID: int(assignment.ID),
+						UserID:       studentsInClass[j].UserID,
+						IDFile:       fmt.Sprintf("file_%s_%d_%s", classData.Tag, weekNum, studentsInClass[j].UserID.String()[:8]),
+						FileName:     fmt.Sprintf("submission_%s.pdf", studentsInClass[j].Username),
+						Score:        85 + j*5,
+						Status:       entities.StatusSubmitted,
+						CreatedAt:    time.Now(),
+						UpdatedAt:    time.Now(),
+					}
+					db.Create(&submission)
+				}
 			}
 		}
 	}
-	return nil
+
+	fmt.Println("Class Control data seeded successfully!")
+}
+
+// ========== SUMMARY ==========
+func PrintStaticUUIDs() {
+	fmt.Println("\n========== STATIC UUID REFERENCES ==========")
+	fmt.Println("CLASS IDs (untuk Assessment.ClassID):")
+	fmt.Printf("  - Pemrograman Web: %s\n", ClassWebProgID)
+	fmt.Printf("  - Basis Data: %s\n", ClassDatabaseID)
+	fmt.Printf("  - Algoritma: %s\n", ClassAlgorithmID)
+
+	fmt.Println("\nTEACHER IDs:")
+	fmt.Printf("  - Dr. Ahmad Santoso: %s\n", TeacherAhmadID)
+	fmt.Printf("  - Prof. Siti Nurhaliza: %s\n", TeacherSitiID)
+	fmt.Printf("  - Dr. Budi Raharjo: %s\n", TeacherBudiID)
+
+	fmt.Println("\nSTUDENT IDs (untuk Assessment.Submission.UserID):")
+	fmt.Printf("  - Alice Johnson: %s\n", StudentAliceID)
+	fmt.Printf("  - Bob Smith: %s\n", StudentBobID)
+	fmt.Printf("  - Charlie Brown: %s\n", StudentCharlieID)
+	fmt.Printf("  - Diana Prince: %s\n", StudentDianaID)
+	fmt.Printf("  - Edward Norton: %s\n", StudentEdwardID)
+	fmt.Printf("  - Fiona Green: %s\n", StudentFionaID)
+	fmt.Printf("  - George Wilson: %s\n", StudentGeorgeID)
+	fmt.Printf("  - Hannah Davis: %s\n", StudentHannahID)
+	fmt.Printf("  - Ivan Petrov: %s\n", StudentIvanID)
+	fmt.Printf("  - Julia Roberts: %s\n", StudentJuliaID)
+	fmt.Printf("  - Kevin Hart: %s\n", StudentKevinID)
+	fmt.Printf("  - Linda Carter: %s\n", StudentLindaID)
+	fmt.Printf("  - Michael Jordan: %s\n", StudentMichaelID)
+	fmt.Printf("  - Nancy Drew: %s\n", StudentNancyID)
+	fmt.Printf("  - Oscar Wilde: %s\n", StudentOscarID)
 }

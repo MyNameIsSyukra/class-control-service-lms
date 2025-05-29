@@ -24,6 +24,7 @@ type GetAssSubmissionStudentResponse struct {
 	Username string `json:"username"`
 	Status entities.AssStatus `json:"status"`
 	LinkFile *string `json:"link_file"`
+	Filename *string `json:"filename"`
 	Score int `json:"score"`
 	CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
