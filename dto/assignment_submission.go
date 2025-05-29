@@ -6,11 +6,16 @@ import (
 
 	"github.com/google/uuid"
 )
+type InitAssignmentSubmissionRequest struct {
+	AssignmentID int       `form:"assignment_id"`
+	UserID       string `gorm:"type:uuid" form:"user_id"`
+	IDFile       string    `form:"id_file"`
+}
 type AssignmentSubmissionRequest struct {
 	AssignmentID int       `json:"assignment_id"`
 	UserID       uuid.UUID `gorm:"type:uuid" json:"user_id"`
 	IDFile       string    `json:"id_file"`
-	// Score        int       `json:"score"`
+	FileName     string    `json:"file_name"`
 }
 
 type GetAssSubmissionStudentResponse struct {

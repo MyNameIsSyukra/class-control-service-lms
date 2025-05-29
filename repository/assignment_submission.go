@@ -37,6 +37,7 @@ func (repo *assignmentSubmissionRepository) CreateAssignmentSubmission(ctx conte
 	assignmentSubmission.UserID = assignmentSubmissionReq.UserID
 	assignmentSubmission.IDFile = assignmentSubmissionReq.IDFile
 	assignmentSubmission.Status = entities.StatusSubmitted
+	assignmentSubmission.FileName = assignmentSubmissionReq.FileName
 	// check assessment deadline
 	var assesment entities.Assignment
 	if err := repo.db.Where("id = ?", assignmentSubmission.AssignmentID).First(&assesment).Error; err != nil {

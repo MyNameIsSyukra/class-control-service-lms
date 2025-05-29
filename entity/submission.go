@@ -12,6 +12,7 @@ type AssignmentSubmission struct {
 	AssignmentID int            `json:"assignment_id"`
 	UserID       uuid.UUID      `gorm:"type:uuid" json:"user_id"`
 	IDFile       string         `json:"id_file"`
+	FileName	string         `json:"file_name"`
 	Score        int            `json:"score"`
 	Status  	AssStatus      `json:"status"`
 

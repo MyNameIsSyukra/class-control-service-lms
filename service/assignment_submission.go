@@ -4,9 +4,14 @@ import (
 	dto "LMSGo/dto"
 	entities "LMSGo/entity"
 	"LMSGo/repository"
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/google/uuid"
@@ -15,7 +20,7 @@ import (
 
 type (
 	AssignmentSubmissionService interface {
-		CreateAssignmentSubmission(ctx context.Context, request dto.AssignmentSubmissionRequest) (*entities.AssignmentSubmission, error)
+		CreateAssignmentSubmission(ctx context.Context, request dto.AssignmentSubmissionRequest, file io.Reader) (*entities.AssignmentSubmission, error)
 
 		// teacher
 		GetAllStudentAssignmentSubmissionByAssignmentID(ctx context.Context,status string, assignmentID int) ([]dto.GetAssSubmissionStudentResponse, error)
@@ -33,7 +38,7 @@ type (
 func NewAssignmentSubmissionService(assignmentSubmissionRepo repository.AssignmentSubmissionRepository, memberRepo repository.StudentRepository, assigmentRepo repository.AssignmentRepository) AssignmentSubmissionService {
 	return &assignmentSubmissionService{assignmentSubmissionRepo, memberRepo, assigmentRepo}
 }
-func (service *assignmentSubmissionService) CreateAssignmentSubmission(ctx context.Context, request dto.AssignmentSubmissionRequest) (*entities.AssignmentSubmission, error) {
+func (service *assignmentSubmissionService) CreateAssignmentSubmission(ctx context.Context, request dto.AssignmentSubmissionRequest, file io.Reader) (*entities.AssignmentSubmission, error) {
 	// check if the user has submitted the assignment
 	assSubmission, err := service.assignmentSubmissionRepo.CheckStudentSubmssionByAssIdUserID(ctx, nil, request.AssignmentID, request.UserID)
 	if err != nil {
@@ -42,6 +47,32 @@ func (service *assignmentSubmissionService) CreateAssignmentSubmission(ctx conte
 	if assSubmission.Status == entities.StatusSubmitted || assSubmission.Status == entities.StatusLate {
 		return &entities.AssignmentSubmission{}, fmt.Errorf("you have submitted this assignment")
 	}
+	// check if student is member of the class
+	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx,nil,request.AssignmentID)
+	if err != nil{
+		return &entities.AssignmentSubmission{}, err
+	}
+	
+	member, err := service.memberRepo.GetMemberByClassIDAndUserID(ctx,nil,assignment.Week.Kelas_idKelas, request.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("you are not class member")
+	}
+	if member.User_userID == uuid.Nil {
+		return nil, fmt.Errorf("you are not class member")
+	}
+	if member.Role == entities.MemberRoleTeacher{
+		return nil, fmt.Errorf("you are a teacher")
+	}
+
+	// check if the file is empty
+	if file == nil {
+		return &entities.AssignmentSubmission{}, fmt.Errorf("file is required")
+	}
+	IDFile, err := service.uploadFile(file, request.FileName)
+	if err != nil {
+		return &entities.AssignmentSubmission{}, fmt.Errorf("failed to upload file: %w", err)
+	}
+	request.IDFile = IDFile
 	newAssignmentSubmission, err := service.assignmentSubmissionRepo.CreateAssignmentSubmission(ctx, nil, request)
 	if err != nil {
 		return &entities.AssignmentSubmission{}, err
@@ -71,7 +102,9 @@ func (service *assignmentSubmissionService) GetAssignmentSubmissionByID(ctx cont
 	if err != nil {
 		return dto.GetAssSubmissionStudentResponse{}, err
 	}
-	link := os.Getenv("CONTENT_URL") + "teacher/student-assignment/" + assignmentSubmission.IDFile	
+	params := url.Values{}
+	params.Add("id", assignmentSubmission.IDFile)
+	link := os.Getenv("CONTENT_URL") + "/teacher/student-assignment/" + "?" + params.Encode()	
 
 	return dto.GetAssSubmissionStudentResponse{
 		ID:         &assignmentSubmission.ID,
@@ -160,7 +193,9 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 			result.CreatedAt = nil
 			result.UpdatedAt = nil
 		}else {
-			link := os.Getenv("CONTENT_URL") + "teacher/student-assignment/" + mem.IDFile
+			params := url.Values{}
+			params.Add("id", mem.ID.String())
+			link := os.Getenv("CONTENT_URL") + "teacher/student-assignment/?" + params.Encode() 
 			result.ID = &mem.ID
 			result.User_userID = member.User_userID
 			result.Username = member.Username
@@ -196,7 +231,9 @@ func (service *assignmentSubmissionService) DeleteAssignmentSubmissionByID(ctx c
 	if assignmentSubmission.ID == uuid.Nil {
 		return fmt.Errorf("assignment submission not found")
 	}
-	link := os.Getenv("CONTENT_URL") + "/student-assignment/" + assignmentSubmission.IDFile
+	params := url.Values{}
+	params.Add("id", assignmentSubmission.IDFile)
+	link := os.Getenv("CONTENT_URL") + "/student-assignment/?" + params.Encode()
 	req, err := http.NewRequest(http.MethodDelete, link, nil)
 	if err != nil {
 		return err
@@ -213,3 +250,76 @@ func (service *assignmentSubmissionService) DeleteAssignmentSubmissionByID(ctx c
 	return nil
 }
 		
+
+
+func (service *assignmentSubmissionService) uploadFile(file io.Reader, fileName string) (string, error) {
+	type FileUploadResponse struct {
+		Id string `json:"id"`
+	}
+	
+	// fmt.Printf("Processing file upload\n")
+	
+	// Create multipart form data
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+	
+	// Create form file field
+	part, err := writer.CreateFormFile("file", fileName)
+	if err != nil {
+		return "", fmt.Errorf("failed to create form file: %w", err)
+	}
+	
+	// Copy file content to form
+	_, err = io.Copy(part, file)
+	if err != nil {
+		return "", fmt.Errorf("failed to copy file content: %w", err)
+	}
+	
+	// Close writer to finalize multipart data
+	err = writer.Close()
+	if err != nil {
+		return "", fmt.Errorf("failed to close multipart writer: %w", err)
+	}
+	
+	// Prepare HTTP request
+	url := os.Getenv("CONTENT_URL") + "/item-pembelajaran/"
+	req, err := http.NewRequest(http.MethodPost, url, &buf)
+	if err != nil {
+		return "", fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+	
+	// Set proper content type with boundary
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	
+	// fmt.Printf("Sending file upload request\n")
+	
+	// Send request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send HTTP request: %w", err)
+	}
+	defer resp.Body.Close()
+	
+	// fmt.Printf("Received response with status: %d\n", resp.StatusCode)
+	
+	// Check response status
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("file upload failed with status %d: %s", resp.StatusCode, string(respBody))
+	}
+	
+	// Parse response
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+	
+	var uploadResp FileUploadResponse
+	if err := json.Unmarshal(respBody, &uploadResp); err != nil {
+		return "", fmt.Errorf("failed to parse upload response: %w", err)
+	}
+	
+	fmt.Printf("File uploaded successfully: %s\n", uploadResp.Id)
+	return uploadResp.Id, nil
+}

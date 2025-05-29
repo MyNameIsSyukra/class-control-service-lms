@@ -4,8 +4,11 @@ import (
 	"LMSGo/dto"
 	Assignment "LMSGo/service"
 	"LMSGo/utils"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -24,18 +27,67 @@ type (
 	}
 )
 
+
 func NewAssignmentSubmissionController(assignmentSubmissionService Assignment.AssignmentSubmissionService) AssignmentSubmissionController {
 	return &assignmentSubmissionController{assignmentSubmissionService}
 }
 
 func (controller *assignmentSubmissionController) CreateAssignmentSubmission(ctx *gin.Context) {
-	var req dto.AssignmentSubmissionRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	var req dto.InitAssignmentSubmissionRequest
+	if err := ctx.ShouldBind(&req); err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(400, res)
 		return
 	}
-	assignmentSubmission, err := controller.assignmentSubmissionService.CreateAssignmentSubmission(ctx.Request.Context(), req)
+	cleanUUIDStr := strings.Trim(req.UserID, "[]\"")
+	userID, err := uuid.Parse(cleanUUIDStr)
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, gin.H{
+            "error":   "Invalid UUID format",
+            "details": fmt.Sprintf("Cannot parse UUID: %s", cleanUUIDStr),
+            "received": req.UserID,
+        })
+        return
+    }
+	var file io.Reader
+	var fileName string
+    fileCount := 0
+    if ctx.Request.MultipartForm != nil && ctx.Request.MultipartForm.File != nil {
+        for _, files := range ctx.Request.MultipartForm.File {
+            fileCount += len(files)
+        }
+    }
+    
+    // LIMIT: Hanya boleh 1 file
+    if fileCount > 1 {
+		res := utils.FailedResponse("Only one file upload is allowed")
+        ctx.JSON(http.StatusBadRequest, res)
+        return
+    }
+	// Coba ambil file dari form, jika ada
+	fileHeader, err := ctx.FormFile("file")
+	if err == nil {
+		openedFile, err := fileHeader.Open()
+		if err != nil {
+			res := utils.FailedResponse("unable to open file")
+			ctx.JSON(http.StatusBadRequest, res)
+			return
+		}
+		defer openedFile.Close()
+		file = openedFile
+		fileName = fileHeader.Filename
+	} else {
+		// File tidak ada, set nil (opsional)
+		file = nil
+		fileName = ""
+	}
+	processedReq := dto.AssignmentSubmissionRequest{
+		AssignmentID: req.AssignmentID,
+		UserID:       userID,
+		FileName: fileName,
+	}
+
+	assignmentSubmission, err := controller.assignmentSubmissionService.CreateAssignmentSubmission(ctx.Request.Context(), processedReq,file)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(http.StatusBadRequest, res)
