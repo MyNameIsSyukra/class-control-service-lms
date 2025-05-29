@@ -6,15 +6,17 @@ import (
 	database "LMSGo/repository"
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 	
 
 type (
 	MemberService interface {
 		AddMemberToClass(ctx context.Context, member *dto.AddMemberRequest) (*entities.Member, error)
-		GetAllMembersByClassID(ctx context.Context, classID uuid.UUID) ([]*entities.Member, error)
+		GetAllMembersByClassID(ctx context.Context, classID uuid.UUID) ([]dto.GetMemberResponse, error)
 		// GetMemberById(ctx context.Context, id string) (*entities.Member, error)
 		// UpdateMember(ctx context.Context, id string, member *dto.UpdateMemberRequest) (*entities.Member, error)
 		DeleteMember(ctx context.Context, id uuid.UUID) error
@@ -76,12 +78,27 @@ func (service *memberService) GetAllClassAndAssesmentByUserID(ctx context.Contex
 	return classes, nil
 }
 
-func (service *memberService) GetAllMembersByClassID(ctx context.Context, classID uuid.UUID) ([]*entities.Member, error) {
+func (service *memberService) GetAllMembersByClassID(ctx context.Context, classID uuid.UUID) ([]dto.GetMemberResponse, error) {
 	members, err := service.memberRepo.GetAllMembersByClassID(ctx, nil, classID)
 	if err != nil {
 		return nil, err
 	}
-	return members, nil
+	err = godotenv.Load(".env")
+	if err != nil {
+		panic(err)
+	}
+	url := os.Getenv("GATEWAY_API_URL")
+	var response []dto.GetMemberResponse
+	for _, member := range members {
+		response = append(response, dto.GetMemberResponse{
+			Username:      member.Username,
+			User_userID:   member.User_userID,
+			Role:          member.Role,
+			Kelas_kelasID: member.Kelas_kelasID,
+			PhotoUrl: fmt.Sprintf("%s/storage/user_profile_pictures/%s.jpg", url, member.User_userID),
+		})
+	}
+	return response, nil
 }
 
 func (service *memberService) DeleteMember(ctx context.Context, id uuid.UUID) error {
