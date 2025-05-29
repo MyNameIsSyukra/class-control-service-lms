@@ -11,6 +11,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/google/uuid"
@@ -21,6 +22,7 @@ type (
 	AssignmentService interface {
 		CreateAssignment(ctx context.Context, request dto.CreateAssignmentRequest,file io.Reader) (*entities.Assignment, error)
 		GetAssignmentByID(ctx context.Context, assignmentID int) (entities.Assignment, error)
+		UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) error
 
 		// student
 		GetAssignmentByIDStudentID(ctx context.Context, assignmentID int, userID uuid.UUID) (dto.StudentGetAssignmentByIDResponse, error)
@@ -134,6 +136,50 @@ func (service *assignmentService) CreateAssignment(ctx context.Context, request 
 	return newAssignment, nil
 }
 
+func (service *assignmentService) UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) error {
+	fmt.Printf("Starting assignment update\n")
+	// check if assignment exists
+	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, request.AssignmentID)
+	if err != nil {
+		return fmt.Errorf("assignment not found: %w", err)
+	}
+	if file != nil {
+		delurl := assignment.FileLink
+		if delurl != "" {
+			delreq, err := http.NewRequest(http.MethodDelete, delurl, nil)
+			if err != nil {
+				return fmt.Errorf("failed to create delete request: %w", err)
+			}
+			client := &http.Client{}
+			resp, err := client.Do(delreq)
+			if err != nil {
+				return fmt.Errorf("failed to delete old file: %w", err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusNoContent {
+				respBody, _ := io.ReadAll(resp.Body)
+				return fmt.Errorf("failed to delete old file with status %d: %s", resp.StatusCode, string(respBody))
+			}
+		}
+		fileURL, err := service.uploadFile(file, request.FileName)
+		if err != nil {
+			return fmt.Errorf("failed to upload new file: %w", err)
+		}
+		request.FileLink = fileURL
+	} else {
+		fmt.Printf("No file provided for update\n")
+		request.FileLink = assignment.FileLink
+		request.FileName = assignment.FileName
+	}
+	// Update assignment in database
+	_, err = service.assignmentRepo.UpdateAssignment(ctx, nil, request.AssignmentID, request)
+	if err != nil {
+		return fmt.Errorf("failed to update assignment: %w", err)
+	}
+	fmt.Printf("Assignment updated successfully\n")
+	return nil
+}
+
 func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignmentID int) (entities.Assignment, error) {
 	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, assignmentID)
 	if err != nil {
@@ -144,6 +190,7 @@ func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignm
 
 // student
 func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context, assignmentID int, userID uuid.UUID) (dto.StudentGetAssignmentByIDResponse, error) {
+	var resp dto.StudentGetAssignmentByIDResponse
 	err := godotenv.Load(".env")
 	if err != nil {
 		panic(err)
@@ -152,22 +199,31 @@ func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context
 	if err != nil {
 		return dto.StudentGetAssignmentByIDResponse{}, err
 	}
-	
+	resp.WeekID = assignment.WeekID
+	resp.Title = assignment.Title
+	resp.Description = assignment.Description
+	resp.FileName = assignment.FileName
+	resp.FileLink = assignment.FileLink
 	// check if student has submitted the assignment
 	assSubmission, err := service.assignmentSubmissionRepo.CheckStudentSubmssionByAssIdUserID(ctx, nil, assignmentID, userID)
 	if err != nil {
 		return dto.StudentGetAssignmentByIDResponse{}, err
 	}
-	link := os.Getenv("CONTENT_URL") + "/student-assignment/user/" + assSubmission.IDFile
-	resp := dto.StudentGetAssignmentByIDResponse{
-		WeekID:      assignment.WeekID,
-		Title:       assignment.Title,
-		Description: assignment.Description,
-		FileName:    assignment.FileName,
-		FileLink:    assignment.FileLink,
-		StudentSubmissionLink: link,
-		Status:      assSubmission.Status,
-		Score:       assSubmission.Score,
+	if assSubmission.ID == uuid.Nil {
+		resp.Score = 0
+		resp.Status = entities.StatusTodo
+		resp.StudentSubmissionLink = nil
+	}
+	if assSubmission.Status == entities.StatusSubmitted || assSubmission.Status == entities.StatusLate {
+		resp.Score = assSubmission.Score
+		resp.Status = assSubmission.Status
+		params := url.Values{}
+		params.Add("id", assSubmission.IDFile)
+		link := os.Getenv("CONTENT_URL") + "/student-assignment/user/?" + params.Encode()
+		resp.StudentSubmissionLink = &link
+	} else {
+		resp.Score = 0
+		resp.Status = entities.StatusTodo
 	}
 	return resp, nil
 }

@@ -5,11 +5,35 @@ import (
 	"time"
 )
 
-type CreateAssignmentRequest struct {
+type AssignmentRequest struct {
 	WeekID      int     `form:"week_id" json:"week_id"`
 	Title       string  `form:"title" json:"title"`
 	Description string  `form:"description" json:"description"`
 	Deadline    time.Time `form:"deadline" json:"deadline"`
+}
+
+type InitUpdateAssignmentRequest struct {
+	AssignmentID int     `form:"assignment_id"`
+	WeekID      int     `form:"week_id"`
+	Title       string  `form:"title"`
+	Description string  `form:"description"`
+	Deadline    time.Time `form:"deadline"`
+}
+type ProrcessedUpdateAssignmentRequest struct {
+	AssignmentID int     `form:"assignment_id"`
+	WeekID      int     `form:"week_id"`
+	Title       string  `form:"title"`
+	Description string  `form:"description"`
+	Deadline    time.Time `form:"deadline"`
+	FileName    string  `form:"file_name"`
+	FileLink	string  `form:"file_link"`
+}
+
+type CreateAssignmentRequest struct {
+	WeekID      int     `json:"week_id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Deadline    time.Time `json:"deadline"`
 	FileName    string  `json:"file_name"`
 	FileLink	string  `json:"file_link"`
 	// FileID      string  `json:"file_id"`
@@ -23,7 +47,7 @@ type StudentGetAssignmentByIDResponse struct {
 	Deadline    time.Time `json:"deadline"`
 	FileName    string  `json:"file_name"`
 	FileLink	string  `json:"file_link_assignment"`
-	StudentSubmissionLink string `json:"file_link_submission"`
+	StudentSubmissionLink *string `json:"file_link_submission"`
 	// FileID    string  `json:"file_id"`
 	Status entities.AssStatus `json:"status"`
 	Score  int `json:"score"`

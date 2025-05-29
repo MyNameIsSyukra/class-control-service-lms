@@ -17,6 +17,7 @@ type (
 	AssignmentController interface {
 		CreateAssignment(ctx *gin.Context)
 		GetAssignmentByID(ctx *gin.Context)
+		UpdateAssignment(ctx *gin.Context)
 
 		// student
 		GetAssignmentByIDStudentID(ctx *gin.Context)
@@ -31,14 +32,19 @@ func NewAssignmentController(assignmentService Assignment.AssignmentService) Ass
 }
 
 func (controller *assignmentController) CreateAssignment(ctx *gin.Context) {
-	var req dto.CreateAssignmentRequest
+	var req dto.AssignmentRequest
 	// Bind form fields (tanpa file)
 	if err := ctx.ShouldBind(&req); err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
-
+	processedReq := dto.CreateAssignmentRequest{
+		WeekID:      req.WeekID,
+		Title:       req.Title,
+		Description: req.Description,
+		Deadline:    req.Deadline,
+	}
 	var file io.Reader
 	var fileName string
 	fileCount := 0
@@ -72,19 +78,64 @@ func (controller *assignmentController) CreateAssignment(ctx *gin.Context) {
 		file = nil
 		fileName = ""
 	}
-	req.FileName = fileName
-	fmt.Println("File Name:", req.FileName)
-	assignment, err := controller.assignmentService.CreateAssignment(ctx.Request.Context(), req, file)
+	processedReq.FileName = fileName
+	fmt.Println("File Name:", processedReq.FileName)
+	assignment, err := controller.assignmentService.CreateAssignment(ctx.Request.Context(), processedReq, file)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
-
 	res := utils.SuccessResponse(assignment)
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (controller *assignmentController) UpdateAssignment(ctx *gin.Context) {
+	var req dto.InitUpdateAssignmentRequest
+	// Bind form fields (tanpa file)
+	if err := ctx.ShouldBind(&req); err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	// Coba ambil file dari form, jika ada
+	fileHeader, err := ctx.FormFile("file")
+	var file io.Reader
+	var fileName string
+	if err == nil {
+		openedFile, err := fileHeader.Open()
+		if err != nil {
+			res := utils.FailedResponse("unable to open file")
+			ctx.JSON(http.StatusBadRequest, res)
+			return
+		}
+		defer openedFile.Close()
+		file = openedFile
+		fileName = fileHeader.Filename
+	} else {
+		file = nil // File tidak ada, set nil (opsional)
+		fileName = ""
+	}
+
+	processedReq := dto.ProrcessedUpdateAssignmentRequest{
+		AssignmentID: req.AssignmentID,
+		WeekID:       req.WeekID,
+		Title:        req.Title,
+		Description:  req.Description,
+		Deadline:     req.Deadline,
+		FileName:     fileName,
+		FileLink:     "",
+	}
+	err = controller.assignmentService.UpdateAssignment(ctx.Request.Context(), processedReq,file)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.SuccessResponse(err)
+	ctx.JSON(http.StatusOK, res)
+}
 
 func (controller *assignmentController) GetAssignmentByID(ctx *gin.Context) {
 	assignmentID := ctx.Query("assignment_id")
