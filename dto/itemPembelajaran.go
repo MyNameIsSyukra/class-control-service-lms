@@ -30,7 +30,7 @@ type CreateItemPembelajaranRequest struct {
 }
 
 type InitialUpdateItemPembelajaranRequest struct {
-	WeekID 		int    `form:"week_id"`
+	WeekID 		int    `form:"week_id" binding:"required"` // same as Week.ID
 	HeadingPertemuan string `form:"headingPertemuan"`
 	BodyPertemuan    string `form:"bodyPertemuan"`
 	UrlVideo         string `form:"urlVideo"`
