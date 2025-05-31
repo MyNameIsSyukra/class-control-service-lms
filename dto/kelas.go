@@ -43,15 +43,13 @@ type KelasPaginationResponse struct {
 }
 
 type AssessmentResponse struct {
-	ID          uuid.UUID `json:"id"`
+	AssignmentID          uuid.UUID `json:"assessment_id"`
 	Name        string    `json:"name"`
 	StartTime   time.Time `json:"start_time"`
 	EndTime     time.Time `json:"end_time"`
 	ClassID   uuid.UUID `gorm:"type:uuid" json:"class_id"`
 	SubmissionStatus ExamStatus  `json:"submission_status"`
 }
-
-
 
 type GetClassAndAssignmentResponse struct {
 	ClassID      uuid.UUID `json:"class_id"`
