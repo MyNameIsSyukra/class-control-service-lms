@@ -20,9 +20,9 @@ import (
 
 type (
 	AssignmentService interface {
-		CreateAssignment(ctx context.Context, request dto.CreateAssignmentRequest,file io.Reader) (*entities.Assignment, error)
-		GetAssignmentByID(ctx context.Context, assignmentID int) (entities.Assignment, error)
-		UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) (*entities.Assignment,error)
+		CreateAssignment(ctx context.Context, request dto.CreateAssignmentRequest,file io.Reader) (*dto.AssignmentResponse, error)
+		GetAssignmentByID(ctx context.Context, assignmentID int) (*dto.AssignmentResponse, error)
+		UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) (*dto.AssignmentResponse,error)
 
 		// student
 		GetAssignmentByIDStudentID(ctx context.Context, assignmentID int, userID uuid.UUID) (dto.StudentGetAssignmentByIDResponse, error)
@@ -39,7 +39,7 @@ func NewAssignmentService(assignmentRepo repository.AssignmentRepository, assign
 
 func (service *assignmentService) uploadFile(file io.Reader, fileName string) (string, error) {
 	type FileUploadResponse struct {
-		Url string `json:"url"`
+		Id string `json:"id"`
 	}
 	
 	fmt.Printf("Processing file upload\n")
@@ -105,22 +105,22 @@ func (service *assignmentService) uploadFile(file io.Reader, fileName string) (s
 		return "", fmt.Errorf("failed to parse upload response: %w", err)
 	}
 	
-	fmt.Printf("File uploaded successfully: %s\n", uploadResp.Url)
-	return uploadResp.Url, nil
+	fmt.Printf("File uploaded successfully: %s\n", uploadResp.Id)
+	return uploadResp.Id, nil
 }
 
-func (service *assignmentService) CreateAssignment(ctx context.Context, request dto.CreateAssignmentRequest, file io.Reader) (*entities.Assignment, error) {
+func (service *assignmentService) CreateAssignment(ctx context.Context, request dto.CreateAssignmentRequest, file io.Reader) (*dto.AssignmentResponse, error) {
 	fmt.Printf("Starting assignment creation\n")
 	
 	if file != nil {
-		fileURL, err := service.uploadFile(file, request.FileName)
+		fileId, err := service.uploadFile(file, request.FileName)
 		if err != nil {
 			return nil, err
 		}
-		request.FileLink = fileURL
+		request.FileId = fileId
 	} else {
 		fmt.Printf("No file provided\n")
-		request.FileLink = ""
+		request.FileId = ""
 		request.FileName = ""
 	}
 	
@@ -133,10 +133,18 @@ func (service *assignmentService) CreateAssignment(ctx context.Context, request 
 	}
 	
 	fmt.Printf("Assignment created successfully\n")
-	return newAssignment, nil
+	return &dto.AssignmentResponse{
+		AssignmentID:      int(newAssignment.ID),
+		Title:       newAssignment.Title,
+		Description: newAssignment.Description,
+		Deadline:    newAssignment.Deadline,
+		FileName:    newAssignment.FileName,
+		FileId:      newAssignment.FileId,
+		FileUrl:     os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + newAssignment.FileId,
+	}, nil
 }
 
-func (service *assignmentService) UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) (*entities.Assignment,error) {
+func (service *assignmentService) UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) (*dto.AssignmentResponse,error) {
 	fmt.Printf("Starting assignment update\n")
 	// check if assignment exists
 	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, request.AssignmentID)
@@ -144,8 +152,11 @@ func (service *assignmentService) UpdateAssignment(ctx context.Context, request 
 		return nil,fmt.Errorf("assignment not found: %w", err)
 	}
 	if file != nil {
-		delurl := assignment.FileLink
-		if delurl != "" {
+		fileId := assignment.FileId
+		if fileId != "" {
+			params := url.Values{}
+			params.Add("id", fileId)
+			delurl := os.Getenv("CONTENT_URL") + "/item-pembelajaran/?" + params.Encode()
 			delreq, err := http.NewRequest(http.MethodDelete, delurl, nil)
 			if err != nil {
 				return nil,fmt.Errorf("failed to create delete request: %w", err)
@@ -161,14 +172,14 @@ func (service *assignmentService) UpdateAssignment(ctx context.Context, request 
 				return nil,fmt.Errorf("failed to delete old file with status %d: %s", resp.StatusCode, string(respBody))
 			}
 		}
-		fileURL, err := service.uploadFile(file, request.FileName)
+		fileId, err := service.uploadFile(file, request.FileName)
 		if err != nil {
 			return nil,fmt.Errorf("failed to upload new file: %w", err)
 		}
-		request.FileLink = fileURL
+		request.FileId = fileId 
 	} else {
 		fmt.Printf("No file provided for update\n")
-		request.FileLink = assignment.FileLink
+		request.FileId = assignment.FileId
 		request.FileName = assignment.FileName
 	}
 	var updates dto.ProrcessedUpdateAssignmentRequest
@@ -194,10 +205,10 @@ func (service *assignmentService) UpdateAssignment(ctx context.Context, request 
 	} else {
 		updates.FileName = assignment.FileName
 	}
-	if request.FileLink != "" {
-		updates.FileLink = request.FileLink
+	if request.FileId != "" {
+		updates.FileId = request.FileId
 	} else {
-		updates.FileLink = assignment.FileLink
+		updates.FileId = assignment.FileId
 	}
 
 	// Update assignment in database
@@ -206,24 +217,32 @@ func (service *assignmentService) UpdateAssignment(ctx context.Context, request 
 		return nil,fmt.Errorf("failed to update assignment: %w", err)
 	}
 	fmt.Printf("Assignment updated successfully\n")
-	return &entities.Assignment{
-		Model: updated.Model,
-		WeekID:      updated.WeekID,
+	return &dto.AssignmentResponse{
+		AssignmentID:      int(updated.ID),
 		Title:       updated.Title,
 		Description: updated.Description,
 		Deadline:    updated.Deadline,
 		FileName:    updated.FileName,
-		FileLink:    updated.FileLink,
+		FileId:      updated.FileId,
+		FileUrl:     os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + updated.FileId,
 	}, nil
 	
 }
 
-func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignmentID int) (entities.Assignment, error) {
+func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignmentID int) (*dto.AssignmentResponse, error) {
 	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, assignmentID)
 	if err != nil {
-		return entities.Assignment{}, err
+		return nil, err
 	}
-	return assignment, nil
+	return &dto.AssignmentResponse{
+		AssignmentID:      int(assignment.ID),
+		Title:       assignment.Title,
+		Description: assignment.Description,
+		Deadline:    assignment.Deadline,
+		FileName:    assignment.FileName,
+		FileId:      assignment.FileId,
+		FileUrl:     os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + assignment.FileId,
+	}, nil
 }
 
 // student
@@ -237,11 +256,12 @@ func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context
 	if err != nil {
 		return dto.StudentGetAssignmentByIDResponse{}, err
 	}
+	fileLink := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + assignment.FileId
 	resp.WeekID = assignment.WeekID
 	resp.Title = assignment.Title
 	resp.Description = assignment.Description
 	resp.FileName = assignment.FileName
-	resp.FileLink = assignment.FileLink
+	resp.FileLink = fileLink
 	// check if student has submitted the assignment
 	assSubmission, err := service.assignmentSubmissionRepo.CheckStudentSubmssionByAssIdUserID(ctx, nil, assignmentID, userID)
 	if err != nil {
@@ -257,7 +277,7 @@ func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context
 		resp.Status = assSubmission.Status
 		params := url.Values{}
 		params.Add("id", assSubmission.IDFile)
-		link := os.Getenv("CONTENT_URL") + "/student-assignment/user/?" + params.Encode()
+		link := os.Getenv("GATEWAY_URL") + "/student-assignment/user/?" + params.Encode()
 		resp.StudentSubmissionLink = &link
 	} else {
 		resp.Score = 0

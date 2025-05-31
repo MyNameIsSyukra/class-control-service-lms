@@ -125,7 +125,6 @@ func (controller *assignmentController) UpdateAssignment(ctx *gin.Context) {
 		Description:  req.Description,
 		Deadline:     req.Deadline,
 		FileName:     fileName,
-		FileLink:     "",
 	}
 	updated,err := controller.assignmentService.UpdateAssignment(ctx.Request.Context(), processedReq,file)
 	if err != nil {

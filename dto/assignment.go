@@ -26,7 +26,7 @@ type ProrcessedUpdateAssignmentRequest struct {
 	Description string  `form:"description"`
 	Deadline    time.Time `form:"deadline"`
 	FileName    string  `form:"file_name"`
-	FileLink	string  `form:"file_link"`
+	FileId	string  `form:"file_id"`
 }
 
 type CreateAssignmentRequest struct {
@@ -35,8 +35,18 @@ type CreateAssignmentRequest struct {
 	Description string  `json:"description"`
 	Deadline    time.Time `json:"deadline"`
 	FileName    string  `json:"file_name"`
-	FileLink	string  `json:"file_link"`
+	FileId	string  `json:"file_id"`
 	// FileID      string  `json:"file_id"`
+}
+
+type AssignmentResponse struct {
+	AssignmentID      int     `json:"assignment_id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Deadline    time.Time `json:"deadline"`
+	FileName    string  `json:"file_name"`
+	FileId	string  `json:"file_id"`
+	FileUrl  string  `json:"file_url"`
 }
 
 
@@ -48,7 +58,6 @@ type StudentGetAssignmentByIDResponse struct {
 	FileName    string  `json:"file_name"`
 	FileLink	string  `json:"file_link_assignment"`
 	StudentSubmissionLink *string `json:"file_link_submission"`
-	// FileID    string  `json:"file_id"`
 	Status entities.AssStatus `json:"status"`
 	Score  int `json:"score"`
 }

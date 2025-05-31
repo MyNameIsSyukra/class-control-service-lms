@@ -1,8 +1,6 @@
 package dto
 
 import (
-	entities "LMSGo/entity"
-
 	"github.com/google/uuid"
 )
 
@@ -11,12 +9,12 @@ type WeekRequest struct {
 	Kelas_idKelas  uuid.UUID `json:"class_id"`
 }
 
-type WeekResponseByID struct {
-	WeekID           int    `json:"id"`
+type WeekResponse struct {
+	WeekID           int    `json:"week_id"`
 	WeekNumber       int    `json:"week_number"`
 	KelasID 		uuid.UUID `json:"class_id"`
-	ItemPembelajarans *entities.ItemPembelajaran `json:"item_pembelajaran,omitempty"`
-	Assignment        *entities.Assignment        `json:"assignment,omitempty"`
+	ItemPembelajarans *ItemPembelajaranResponse `json:"item_pembelajaran"`
+	Assignment        *AssignmentResponse        `json:"assignment"`
 }
 
 type ClassIDResponse struct {
@@ -28,12 +26,4 @@ type ClassIDResponse struct {
 	TeacherID uuid.UUID `json:"teacher_id"`
 
 	Week []WeekResponse `json:"week"`
-}
-
-type WeekResponse struct {
-	WeekID           int    `json:"id"`
-	WeekNumber       int    `json:"week_number"`
-	KelasID 		uuid.UUID `json:"class_id"`
-	ItemPembelajarans *entities.ItemPembelajaran `json:"item_pembelajaran"`
-	Assignment        *entities.Assignment        `json:"assignment"`
 }

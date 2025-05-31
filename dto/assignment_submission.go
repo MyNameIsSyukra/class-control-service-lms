@@ -22,6 +22,7 @@ type GetAssSubmissionStudentResponse struct {
 	ID 		 *uuid.UUID `gorm:"type:uuid" json:"id_submission"`
 	User_userID uuid.UUID `gorm:"type:uuid" json:"user_user_id"`	
 	Username string `json:"username"`
+	PhotoUrl *string `json:"photo_url"`
 	Status entities.AssStatus `json:"status"`
 	LinkFile *string `json:"link_file"`
 	Filename *string `json:"filename"`

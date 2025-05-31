@@ -13,11 +13,11 @@ func Assignment(route *gin.Engine, injector *do.Injector) {
 	routes := route.Group("teacher/kelas")
 	{
 		routes.POST("/assignment", assignmentController.CreateAssignment)
-		routes.GET("/assignment/", assignmentController.GetAssignmentByID)
-		routes.PUT("/assignment/", assignmentController.UpdateAssignment)
+		routes.GET("/assignment", assignmentController.GetAssignmentByID)
+		routes.PUT("/assignment", assignmentController.UpdateAssignment)
 	}
 	studentRoute := route.Group("student/kelas")
 	{
-		studentRoute.GET("/assignment/", assignmentController.GetAssignmentByIDStudentID)	
+		studentRoute.GET("/assignment", assignmentController.GetAssignmentByIDStudentID)	
 	}
 }

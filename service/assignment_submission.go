@@ -108,12 +108,13 @@ func (service *assignmentSubmissionService) GetAssignmentSubmissionByID(ctx cont
 	}
 	params := url.Values{}
 	params.Add("id", assignmentSubmission.IDFile)
-	link := os.Getenv("CONTENT_URL") + "/teacher/student-assignment/" + "?" + params.Encode()	
-
+	link := os.Getenv("GATEWAY_URL") + "/teacher/student-assignment/" + "?" + params.Encode()	
+	photoUrl := os.Getenv("GATEWAY_URL") + "/storage/user_profile_pictures" + student.User_userID.String() + ".jpg"
 	return dto.GetAssSubmissionStudentResponse{
 		ID:         &assignmentSubmission.ID,
 		User_userID: student.User_userID,
 		Username:   student.Username,
+		PhotoUrl:   &photoUrl,
 		Status:     assignmentSubmission.Status,
 		Score:      assignmentSubmission.Score,
 		LinkFile:   &link,
@@ -189,9 +190,11 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 		}
 		result := dto.GetAssSubmissionStudentResponse{}
 		mem := submissionMapping[member.User_userID]
+		photoUrl := os.Getenv("GATEWAY_URL") + "/storage/user_profile_pictures" + member.User_userID.String()+".jpg"
 		if mem.ID == uuid.Nil {
 			result.ID = nil
 			result.User_userID = member.User_userID
+			result.PhotoUrl = &photoUrl
 			result.Username = member.Username
 			result.Status = entities.AssStatus("todo")
 			result.LinkFile = nil
@@ -202,7 +205,8 @@ func (service *assignmentSubmissionService) GetAllStudentAssignmentSubmissionByA
 		}else {
 			params := url.Values{}
 			params.Add("id", mem.IDFile)
-			link := os.Getenv("CONTENT_URL") + "/teacher/student-assignment/?" + params.Encode() 
+			link := os.Getenv("GATEWAY_URL") + "/teacher/student-assignment/?" + params.Encode()
+			result.PhotoUrl = &photoUrl
 			result.ID = &mem.ID
 			result.User_userID = member.User_userID
 			result.Username = member.Username

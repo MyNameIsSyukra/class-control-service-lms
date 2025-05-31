@@ -197,26 +197,27 @@ func SeedClassControlData(db *gorm.DB, sharedClasses []SharedClassData, sharedUs
 
 			// Seed ItemPembelajaran
 			itemPembelajaran := entities.ItemPembelajaran{
-				WeekID:           week.ID,
-				HeadingPertemuan: fmt.Sprintf("Pertemuan %d - %s", weekNum, classData.Name),
-				BodyPertemuan:    fmt.Sprintf("Materi pembelajaran minggu ke-%d untuk mata kuliah %s", weekNum, classData.Name),
-				UrlVideo:         fmt.Sprintf("https://youtube.com/watch?v=example_%s_week_%d", classData.Tag, weekNum),
-				FileName:         fmt.Sprintf("materi_%s_week_%d.pdf", classData.Tag, weekNum),
-				FileLink:         fmt.Sprintf("https://drive.google.com/file/%s_week_%d", classData.Tag, weekNum),
+			    WeekID:           week.ID,
+			    HeadingPertemuan: fmt.Sprintf("Pertemuan %d - %s", weekNum, classData.Name),
+			    BodyPertemuan:    fmt.Sprintf("Materi pembelajaran minggu ke-%d untuk mata kuliah %s", weekNum, classData.Name),
+			    UrlVideo:         fmt.Sprintf("https://youtube.com/watch?v=example_%s_week_%d", classData.Tag, weekNum),
+			    FileName:         fmt.Sprintf("materi_%s_week_%d.pdf", classData.Tag, weekNum),
+			    FileId:           fmt.Sprintf("1A2B3C4D5E6F7G8H9I0J_%s_week_%d", classData.Tag, weekNum), // Google Drive file ID format
 			}
 			db.Create(&itemPembelajaran)
 
 			// Seed Assignment (every 2 weeks)
 			if weekNum%2 == 0 {
-				assignment := entities.Assignment{
-					Title:       fmt.Sprintf("Tugas %s - Minggu %d", classData.Name, weekNum),
-					Description: fmt.Sprintf("Tugas praktikum untuk minggu ke-%d mata kuliah %s", weekNum, classData.Name),
-					Deadline:    time.Now().AddDate(0, 0, 7),
-					FileName:    fmt.Sprintf("tugas_%s_week_%d.pdf", classData.Tag, weekNum),
-					FileLink:    fmt.Sprintf("https://drive.google.com/assignment_%s_week_%d", classData.Tag, weekNum),
-					WeekID:      week.ID,
-				}
-				db.Create(&assignment)
+			    assignment := entities.Assignment{
+			        Title:       fmt.Sprintf("Tugas %s - Minggu %d", classData.Name, weekNum),
+			        Description: fmt.Sprintf("Tugas praktikum untuk minggu ke-%d mata kuliah %s", weekNum, classData.Name),
+			        Deadline:    time.Now().AddDate(0, 0, 7),
+			        FileName:    fmt.Sprintf("tugas_%s_week_%d.pdf", classData.Tag, weekNum),
+			        FileId:      fmt.Sprintf("1Z2Y3X4W5V6U7T8S9R0Q_%s_week_%d", classData.Tag, weekNum), // Google Drive file ID format
+			        WeekID:      week.ID,
+			    }
+			    db.Create(&assignment)
+
 
 				// Seed AssignmentSubmissions using shared user data
 				studentsInClass := make([]SharedUserData, 0)

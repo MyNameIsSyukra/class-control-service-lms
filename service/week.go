@@ -11,20 +11,22 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 type (
 	WeekService interface {
 		GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) ([]dto.WeekResponse, error)
-		GetWeekByID(ctx context.Context, weekID int) (dto.WeekResponseByID, error)
+		GetWeekByID(ctx context.Context, weekID int) (dto.WeekResponse, error)
 
 		// teacher
-		CreateWeeklySection(ctx context.Context, request dto.CreateItemPembelajaranRequest,file io.Reader) (*entities.ItemPembelajaran, error)
+		CreateWeeklySection(ctx context.Context, request dto.CreateItemPembelajaranRequest,file io.Reader) (*dto.ItemPembelajaranResponse, error)
 		DeleteWeeklySection(ctx context.Context, weekID int) error
-		UpdateWeeklySection(ctx context.Context, req dto.UpdateItemPembelajaranRequest,file io.Reader) (*entities.ItemPembelajaran, error)
+		UpdateWeeklySection(ctx context.Context, req dto.UpdateItemPembelajaranRequest,file io.Reader) (*dto.ItemPembelajaranResponse, error)
 		// CreateWeeklySection(ctx context.Context, weekReq dto.WeekRequest) (*entities.Week, error)
 		// DeleteWeeklySection(ctx context.Context, weekID int) error
 	}
@@ -59,19 +61,56 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 	var weekResponse []dto.WeekResponse
 	for _, week := range weeks {
 		var weekRes dto.WeekResponse
-		if week.Assignment.Title == "" {
+		
+		// Check if Assignment is empty
+		hasAssignment := week.Assignment.Title != "" && 
+						week.Assignment.Description != "" && 
+						week.Assignment.ID != 0
+		
+		// Check if ItemPembelajaran is empty
+		hasItemPembelajaran := week.ItemPembelajaran.HeadingPertemuan != "" && 
+							  week.ItemPembelajaran.BodyPertemuan != "" && 
+							  week.ItemPembelajaran.WeekID != 0
+		
+		// Set Assignment data if exists
+		if hasAssignment {
+			weekRes.Assignment = &dto.AssignmentResponse{
+				AssignmentID: int(week.Assignment.ID),
+				Title:        week.Assignment.Title,
+				Description:  week.Assignment.Description,
+				Deadline:     week.Assignment.Deadline,
+				FileName:     week.Assignment.FileName,
+				FileId:       week.Assignment.FileId,
+				FileUrl:      os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.Assignment.FileId}}.Encode(),
+			}
+		} else {
 			weekRes.Assignment = nil
-			weekRes.ItemPembelajarans = &week.ItemPembelajaran
-		}else if week.ItemPembelajaran.HeadingPertemuan == "" {
-			weekRes.ItemPembelajarans = nil
-			weekRes.Assignment = &week.Assignment
-		}else {
-			weekRes.ItemPembelajarans = &week.ItemPembelajaran
-			weekRes.Assignment = &week.Assignment
 		}
+
+		// Set ItemPembelajaran data if exists
+		if hasItemPembelajaran {
+			weekRes.ItemPembelajarans = &dto.ItemPembelajaranResponse{
+				WeekID:           week.ItemPembelajaran.WeekID,
+				HeadingPertemuan: week.ItemPembelajaran.HeadingPertemuan,
+				BodyPertemuan:    week.ItemPembelajaran.BodyPertemuan,
+				UrlVideo:         week.ItemPembelajaran.UrlVideo,
+				FileName:         week.ItemPembelajaran.FileName,
+				FileId:           week.ItemPembelajaran.FileId,
+				FileUrl:          os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.ItemPembelajaran.FileId}}.Encode(),
+			}
+		} else {
+			weekRes.ItemPembelajarans = nil
+		}
+
+		// Set common week data
 		weekRes.WeekID = week.ID
 		weekRes.WeekNumber = week.WeekNumber
 		weekRes.KelasID = week.Kelas_idKelas
+
+		// Optional: Log if both are empty
+		if !hasAssignment && !hasItemPembelajaran {
+			fmt.Printf("Week %d has no assignment and no item pembelajaran\n", week.ID)
+		}
 		weekResponse = append(weekResponse, weekRes)
 	}		
 
@@ -79,17 +118,33 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 	return weekResponse, nil
 }
 
-func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.WeekResponseByID, error) {
+func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.WeekResponse, error) {
 	week, err := service.weekRepo.GetWeekByID(ctx, nil, weekID)
 	if err != nil {
-		return dto.WeekResponseByID{}, err
+		return dto.WeekResponse{}, err
 	}
-	resp := dto.WeekResponseByID{
+	resp := dto.WeekResponse{
 		WeekID:           week.ID,
 		WeekNumber:       week.WeekNumber,
 		KelasID:          week.Kelas_idKelas,
-		ItemPembelajarans: &week.ItemPembelajaran,
-		Assignment:       &week.Assignment,
+		ItemPembelajarans: &dto.ItemPembelajaranResponse{
+			WeekID:           week.ItemPembelajaran.WeekID,
+			HeadingPertemuan: week.ItemPembelajaran.HeadingPertemuan,
+			BodyPertemuan:    week.ItemPembelajaran.BodyPertemuan,
+			UrlVideo:         week.ItemPembelajaran.UrlVideo,
+			FileName:         week.ItemPembelajaran.FileName,
+			FileId:           week.ItemPembelajaran.FileId,
+			FileUrl:          os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + week.ItemPembelajaran.FileId + "?" + url.Values{"id": []string{week.ItemPembelajaran.FileId}}.Encode(),
+		},
+		Assignment:       &dto.AssignmentResponse{
+			AssignmentID:      int(week.Assignment.ID),
+			Title:       week.Assignment.Title,
+			Description: week.Assignment.Description,
+			Deadline:    week.Assignment.Deadline,
+			FileName:    week.Assignment.FileName,
+			FileId:      week.Assignment.FileId,
+			FileUrl:     os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.Assignment.FileId}}.Encode(),
+		},
 	}
 	if week.Assignment.Title == "" {
 		resp.Assignment = nil
@@ -100,7 +155,7 @@ func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.We
 	return resp, nil
 }
 
-func (service *weekService) CreateWeeklySection(ctx context.Context, request dto.CreateItemPembelajaranRequest, file io.Reader) (*entities.ItemPembelajaran, error) {
+func (service *weekService) CreateWeeklySection(ctx context.Context, request dto.CreateItemPembelajaranRequest, file io.Reader) (*dto.ItemPembelajaranResponse, error) {
 	class , err := service.kelasRepo.GetById(ctx, nil, request.KelasID)
 	if err != nil {
 		return nil, fmt.Errorf("class with ID %s not found", request.KelasID)
@@ -117,14 +172,14 @@ func (service *weekService) CreateWeeklySection(ctx context.Context, request dto
 		return nil, err
 	}
 	if file != nil {
-		fileURL, err := service.uploadFile(file, request.FileName)
+		fileId, err := service.uploadFile(file, request.FileName)
 		if err != nil {
 			return nil, err
 		}
-		request.FileLink = fileURL
+		request.FileId = fileId
 	} else {
 		fmt.Printf("No file provided\n")
-		request.FileLink = ""
+		request.FileId = ""
 		request.FileName = ""
 	}
 	newItem := &entities.ItemPembelajaran{
@@ -133,25 +188,42 @@ func (service *weekService) CreateWeeklySection(ctx context.Context, request dto
 		BodyPertemuan: request.BodyPertemuan,
 		UrlVideo: request.UrlVideo,
 		FileName: request.FileName,
-		FileLink: request.FileLink,
+		FileId: request.FileId,
 	}
 	newItem, err = service.weekRepo.CreateItemPembelajaran(ctx, nil, newItem)
 	if err != nil {
 		return nil, err
 	}
-
-	return newItem, nil
+	params := url.Values{}
+	params.Add("id", newItem.FileId)
+	fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + params.Encode()
+	return &dto.ItemPembelajaranResponse{
+		WeekID:           newItem.WeekID,
+		HeadingPertemuan: newItem.HeadingPertemuan,
+		BodyPertemuan:    newItem.BodyPertemuan,
+		UrlVideo:         newItem.UrlVideo,
+		FileName:         newItem.FileName,
+		FileId:           newItem.FileId,
+		FileUrl:          fileUrl,
+	}, nil
 }
 
 // Update WeeklySection is not implemented in the original code, so we will not implement it here.
-func (service *weekService) UpdateWeeklySection(ctx context.Context,req dto.UpdateItemPembelajaranRequest, file io.Reader) (*entities.ItemPembelajaran, error) {
+func (service *weekService) UpdateWeeklySection(ctx context.Context,req dto.UpdateItemPembelajaranRequest, file io.Reader) (*dto.ItemPembelajaranResponse, error) {
 	oldItem, err := service.weekRepo.GetItemPembelajaran(ctx, nil, req.WeekID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get old item pembelajaran: %w", err)
 	}
+	err = godotenv.Load(".env")
+	if err != nil {
+		panic(err)
+	}
 	if file != nil {
-		deleteURL := oldItem.FileLink
-		if (deleteURL != "") {
+		id := oldItem.FileId
+		if (id != "") {
+			params := url.Values{}
+			params.Add("id", id)
+			deleteURL := os.Getenv("CONTENT_URL") + "/item-pembelajaran/" + "?" + params.Encode()
 			delReq, err := http.NewRequest(http.MethodDelete, deleteURL, nil)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create delete request: %w", err)
@@ -167,14 +239,14 @@ func (service *weekService) UpdateWeeklySection(ctx context.Context,req dto.Upda
 				return nil, fmt.Errorf("failed to delete old file with status %d: %s", resp.StatusCode, string(respBody))
 			}
 		}
-		fileURL, err := service.uploadFile(file, req.FileName)
+		fileId, err := service.uploadFile(file, req.FileName)
 		if err != nil {
 			return nil, err
 		}
-		req.FileLink = fileURL
+		req.FileId = fileId
 	} else {
 		fmt.Printf("No file provided\n")
-		req.FileLink = ""
+		req.FileId = ""
 		req.FileName = ""
 	}
 	if req.HeadingPertemuan == "" {
@@ -197,8 +269,8 @@ func (service *weekService) UpdateWeeklySection(ctx context.Context,req dto.Upda
 		req.FileName = oldItem.FileName
 	}
 	// fmt.Printf("Creating new item pembelajaran with WeekID: %d\n", req.WeekID)
-	if req.FileLink == "" {
-		req.FileLink = oldItem.FileLink
+	if req.FileId == "" {
+		req.FileId = oldItem.FileId
 	}
 	item := &entities.ItemPembelajaran{
 		WeekID: req.WeekID,
@@ -206,14 +278,25 @@ func (service *weekService) UpdateWeeklySection(ctx context.Context,req dto.Upda
 		BodyPertemuan: req.BodyPertemuan,
 		UrlVideo: req.UrlVideo,
 		FileName: req.FileName,
-		FileLink: req.FileLink,
+		FileId: req.FileId,
 	}
 	
 	item, err = service.weekRepo.UpdateItemPembelajaran(ctx, nil, item)
 	if err != nil {
 		return nil, err
 	}
-	return item, nil
+	params := url.Values{}
+	params.Add("id", item.FileId)
+	fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + params.Encode() 
+	return &dto.ItemPembelajaranResponse{
+		WeekID:           item.WeekID,
+		HeadingPertemuan: item.HeadingPertemuan,
+		BodyPertemuan:    item.BodyPertemuan,
+		UrlVideo:         item.UrlVideo,
+		FileName:         item.FileName,
+		FileId:           item.FileId,
+		FileUrl:          fileUrl,
+	}, nil
 }
 	
 
@@ -228,7 +311,7 @@ func (service *weekService) DeleteWeeklySection(ctx context.Context, weekID int)
 
 func (service *weekService) uploadFile(file io.Reader, fileName string) (string, error) {
 	type FileUploadResponse struct {
-		Url string `json:"url"`
+		Id string `json:"id"`
 	}
 	
 	// fmt.Printf("Processing file upload\n")
@@ -294,6 +377,6 @@ func (service *weekService) uploadFile(file io.Reader, fileName string) (string,
 		return "", fmt.Errorf("failed to parse upload response: %w", err)
 	}
 	
-	fmt.Printf("File uploaded successfully: %s\n", uploadResp.Url)
-	return uploadResp.Url, nil
+	fmt.Printf("File uploaded successfully: %s\n", uploadResp.Id)
+	return uploadResp.Id, nil
 }

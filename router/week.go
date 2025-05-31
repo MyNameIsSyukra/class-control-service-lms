@@ -18,7 +18,7 @@ func WeekSection(route *gin.Engine, injector *do.Injector){
 	}
 	routes = route.Group("/kelas")
 	{
-		routes.GET("/weekly-section/", weekController.GetWeekByID)
-		routes.GET("/weekly-section/class/", weekController.GetAllWeekByClassID)
+		routes.GET("/weekly-section", weekController.GetWeekByID)
+		routes.GET("/weekly-section/class", weekController.GetAllWeekByClassID)
 	}
 }

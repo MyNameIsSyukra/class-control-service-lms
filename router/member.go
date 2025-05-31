@@ -17,8 +17,8 @@ func Member(server *gin.Engine, injector *do.Injector) {
 	}
 	member = server.Group("/public")
 	{
-		member.GET("class/members/", memberController.GetAllMembersByClassIDData)
-		member.GET("/user/class/", memberController.GetAllClassByUserID)
-		member.GET("/assessment/upcoming/", memberController.GetAllClassAndAssesmentByUserID)
+		member.GET("class/members", memberController.GetAllMembersByClassIDData)
+		member.GET("/user/class", memberController.GetAllClassByUserID)
+		member.GET("/assessment/upcoming", memberController.GetAllClassAndAssesmentByUserID)
 	}
 }

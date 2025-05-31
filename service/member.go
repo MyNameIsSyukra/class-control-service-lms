@@ -87,7 +87,7 @@ func (service *memberService) GetAllMembersByClassID(ctx context.Context, classI
 	if err != nil {
 		panic(err)
 	}
-	url := os.Getenv("GATEWAY_API_URL")
+	url := os.Getenv("GATEWAY_URL")
 	var response []dto.GetMemberResponse
 	for _, member := range members {
 		response = append(response, dto.GetMemberResponse{

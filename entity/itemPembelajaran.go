@@ -7,7 +7,7 @@ type ItemPembelajaran struct {
 	UrlVideo         string `json:"urlVideo"`
 	FileName         string `json:"fileName"`
 	// FileID           string `json:"file_id"`
-	FileLink string `json:"file_link"`
+	FileId string `json:"fileId"`
 	// one-to-one with Week
 	Week *Week `gorm:"foreignKey:WeekID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 }

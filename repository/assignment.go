@@ -34,7 +34,7 @@ func (repo *assignmentRepository) CreateAssignment(ctx context.Context, tx *gorm
 	assignment.Description = assignmentReq.Description
 	assignment.Deadline = assignmentReq.Deadline
 	assignment.FileName = assignmentReq.FileName
-	assignment.FileLink = assignmentReq.FileLink
+	assignment.FileId = assignmentReq.FileId
 
 	if err := repo.db.Create(&assignment).Error; err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (repo *assignmentRepository) UpdateAssignment(ctx context.Context, tx *gorm
 	assignment.Description = assignmentReq.Description
 	assignment.Deadline = assignmentReq.Deadline
 	assignment.FileName = assignmentReq.FileName
-	assignment.FileLink = assignmentReq.FileLink
+	assignment.FileId = assignmentReq.FileId
 
 	if err := repo.db.Save(&assignment).Error; err != nil {
 		return nil, err
