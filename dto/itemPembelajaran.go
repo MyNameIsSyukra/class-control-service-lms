@@ -50,7 +50,7 @@ type ItemPembelajaranResponse struct {
 	HeadingPertemuan string `json:"headingPertemuan"`
 	BodyPertemuan    string `json:"bodyPertemuan"`
 	UrlVideo         string `json:"urlVideo"`
-	FileName         string `json:"fileName"`
-	FileId         string `json:"fileId"`
-	FileUrl 	   string `json:"fileUrl"`
+	FileName         *string `json:"fileName"`
+	FileId         *string `json:"fileId"`
+	FileUrl 	   *string `json:"fileUrl"`
 }

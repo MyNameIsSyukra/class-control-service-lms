@@ -74,14 +74,27 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 		
 		// Set Assignment data if exists
 		if hasAssignment {
-			weekRes.Assignment = &dto.AssignmentResponse{
+			if week.Assignment.FileId == "" {
+				weekRes.Assignment = &dto.AssignmentResponse{
 				AssignmentID: int(week.Assignment.ID),
 				Title:        week.Assignment.Title,
 				Description:  week.Assignment.Description,
 				Deadline:     week.Assignment.Deadline,
-				FileName:     week.Assignment.FileName,
-				FileId:       week.Assignment.FileId,
-				FileUrl:      os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.Assignment.FileId}}.Encode(),
+				FileName:     nil,
+				FileId:       nil,
+				FileUrl:      nil,
+			}
+			} else {
+				fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.Assignment.FileId}}.Encode()
+				weekRes.Assignment = &dto.AssignmentResponse{
+					AssignmentID: int(week.Assignment.ID),
+					Title:        week.Assignment.Title,
+					Description:  week.Assignment.Description,
+					Deadline:     week.Assignment.Deadline,
+					FileName:     &week.Assignment.FileName,
+					FileId:       &week.Assignment.FileId,
+					FileUrl:      &fileUrl,
+				}
 			}
 		} else {
 			weekRes.Assignment = nil
@@ -89,14 +102,27 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 
 		// Set ItemPembelajaran data if exists
 		if hasItemPembelajaran {
-			weekRes.ItemPembelajarans = &dto.ItemPembelajaranResponse{
+			fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.ItemPembelajaran.FileId}}.Encode()
+			if week.ItemPembelajaran.FileId == "" {
+				weekRes.ItemPembelajarans = &dto.ItemPembelajaranResponse{
 				WeekID:           week.ItemPembelajaran.WeekID,
 				HeadingPertemuan: week.ItemPembelajaran.HeadingPertemuan,
 				BodyPertemuan:    week.ItemPembelajaran.BodyPertemuan,
 				UrlVideo:         week.ItemPembelajaran.UrlVideo,
-				FileName:         week.ItemPembelajaran.FileName,
-				FileId:           week.ItemPembelajaran.FileId,
-				FileUrl:          os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.ItemPembelajaran.FileId}}.Encode(),
+				FileName:         nil,
+				FileId:           nil,
+				FileUrl:          nil,
+			}
+			} else {
+					weekRes.ItemPembelajarans = &dto.ItemPembelajaranResponse{
+					WeekID:           week.ItemPembelajaran.WeekID,
+					HeadingPertemuan: week.ItemPembelajaran.HeadingPertemuan,
+					BodyPertemuan:    week.ItemPembelajaran.BodyPertemuan,
+					UrlVideo:         week.ItemPembelajaran.UrlVideo,
+					FileName:         &week.ItemPembelajaran.FileName,
+					FileId:           &week.ItemPembelajaran.FileId,
+					FileUrl:          &fileUrl,
+				}
 			}
 		} else {
 			weekRes.ItemPembelajarans = nil
@@ -123,6 +149,8 @@ func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.We
 	if err != nil {
 		return dto.WeekResponse{}, err
 	}
+	fileUrlItem := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.ItemPembelajaran.FileId}}.Encode()
+	fileUrlAssignment := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.Assignment.FileId}}.Encode()
 	resp := dto.WeekResponse{
 		WeekID:           week.ID,
 		WeekNumber:       week.WeekNumber,
@@ -132,18 +160,18 @@ func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.We
 			HeadingPertemuan: week.ItemPembelajaran.HeadingPertemuan,
 			BodyPertemuan:    week.ItemPembelajaran.BodyPertemuan,
 			UrlVideo:         week.ItemPembelajaran.UrlVideo,
-			FileName:         week.ItemPembelajaran.FileName,
-			FileId:           week.ItemPembelajaran.FileId,
-			FileUrl:          os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + week.ItemPembelajaran.FileId + "?" + url.Values{"id": []string{week.ItemPembelajaran.FileId}}.Encode(),
+			FileName:         &week.ItemPembelajaran.FileName,
+			FileId:           &week.ItemPembelajaran.FileId,
+			FileUrl:          &fileUrlItem,
 		},
 		Assignment:       &dto.AssignmentResponse{
 			AssignmentID:      int(week.Assignment.ID),
 			Title:       week.Assignment.Title,
 			Description: week.Assignment.Description,
 			Deadline:    week.Assignment.Deadline,
-			FileName:    week.Assignment.FileName,
-			FileId:      week.Assignment.FileId,
-			FileUrl:     os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.Assignment.FileId}}.Encode(),
+			FileName:    &week.Assignment.FileName,
+			FileId:      &week.Assignment.FileId,
+			FileUrl:     &fileUrlAssignment,
 		},
 	}
 	if week.Assignment.Title == "" {
@@ -194,18 +222,32 @@ func (service *weekService) CreateWeeklySection(ctx context.Context, request dto
 	if err != nil {
 		return nil, err
 	}
+	var res dto.ItemPembelajaranResponse
 	params := url.Values{}
 	params.Add("id", newItem.FileId)
 	fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + params.Encode()
-	return &dto.ItemPembelajaranResponse{
+	if newItem.FileId == "" {
+		res = dto.ItemPembelajaranResponse{
 		WeekID:           newItem.WeekID,
 		HeadingPertemuan: newItem.HeadingPertemuan,
 		BodyPertemuan:    newItem.BodyPertemuan,
 		UrlVideo:         newItem.UrlVideo,
-		FileName:         newItem.FileName,
-		FileId:           newItem.FileId,
-		FileUrl:          fileUrl,
-	}, nil
+		FileName:         nil,
+		FileId:           nil,
+		FileUrl:          nil,
+		}
+	} else {
+		res = dto.ItemPembelajaranResponse{
+			WeekID:           newItem.WeekID,
+			HeadingPertemuan: newItem.HeadingPertemuan,
+			BodyPertemuan:    newItem.BodyPertemuan,
+			UrlVideo:         newItem.UrlVideo,
+			FileName:         &newItem.FileName,
+			FileId:           &newItem.FileId,
+			FileUrl:          &fileUrl,
+		}
+	}
+	return &res, nil
 }
 
 // Update WeeklySection is not implemented in the original code, so we will not implement it here.
@@ -293,9 +335,9 @@ func (service *weekService) UpdateWeeklySection(ctx context.Context,req dto.Upda
 		HeadingPertemuan: item.HeadingPertemuan,
 		BodyPertemuan:    item.BodyPertemuan,
 		UrlVideo:         item.UrlVideo,
-		FileName:         item.FileName,
-		FileId:           item.FileId,
-		FileUrl:          fileUrl,
+		FileName:         &item.FileName,
+		FileId:           &item.FileId,
+		FileUrl:          &fileUrl,
 	}, nil
 }
 	

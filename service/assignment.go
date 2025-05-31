@@ -131,16 +131,16 @@ func (service *assignmentService) CreateAssignment(ctx context.Context, request 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create assignment: %w", err)
 	}
-	
+	fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + newAssignment.FileId
 	fmt.Printf("Assignment created successfully\n")
 	return &dto.AssignmentResponse{
 		AssignmentID:      int(newAssignment.ID),
 		Title:       newAssignment.Title,
 		Description: newAssignment.Description,
 		Deadline:    newAssignment.Deadline,
-		FileName:    newAssignment.FileName,
-		FileId:      newAssignment.FileId,
-		FileUrl:     os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + newAssignment.FileId,
+		FileName:    &newAssignment.FileName,
+		FileId:      &newAssignment.FileId,
+		FileUrl:     &fileUrl,
 	}, nil
 }
 
@@ -217,14 +217,15 @@ func (service *assignmentService) UpdateAssignment(ctx context.Context, request 
 		return nil,fmt.Errorf("failed to update assignment: %w", err)
 	}
 	fmt.Printf("Assignment updated successfully\n")
+	fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + updated.FileId
 	return &dto.AssignmentResponse{
 		AssignmentID:      int(updated.ID),
 		Title:       updated.Title,
 		Description: updated.Description,
 		Deadline:    updated.Deadline,
-		FileName:    updated.FileName,
-		FileId:      updated.FileId,
-		FileUrl:     os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + updated.FileId,
+		FileName:    &updated.FileName,
+		FileId:      &updated.FileId,
+		FileUrl:     &fileUrl,
 	}, nil
 	
 }
@@ -234,14 +235,15 @@ func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignm
 	if err != nil {
 		return nil, err
 	}
+	fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + assignment.FileId
 	return &dto.AssignmentResponse{
 		AssignmentID:      int(assignment.ID),
 		Title:       assignment.Title,
 		Description: assignment.Description,
 		Deadline:    assignment.Deadline,
-		FileName:    assignment.FileName,
-		FileId:      assignment.FileId,
-		FileUrl:     os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + assignment.FileId,
+		FileName:    &assignment.FileName,
+		FileId:      &assignment.FileId,
+		FileUrl:     &fileUrl,
 	}, nil
 }
 

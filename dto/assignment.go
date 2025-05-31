@@ -44,9 +44,9 @@ type AssignmentResponse struct {
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
 	Deadline    time.Time `json:"deadline"`
-	FileName    string  `json:"file_name"`
-	FileId	string  `json:"file_id"`
-	FileUrl  string  `json:"file_url"`
+	FileName    *string  `json:"file_name"`
+	FileId	*string  `json:"file_id"`
+	FileUrl  *string  `json:"file_url"`
 }
 
 
