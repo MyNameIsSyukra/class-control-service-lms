@@ -14,16 +14,5 @@ type WeekResponse struct {
 	WeekNumber       int    `json:"week_number"`
 	KelasID 		uuid.UUID `json:"class_id"`
 	ItemPembelajarans *ItemPembelajaranResponse `json:"item_pembelajaran"`
-	Assignment        *AssignmentResponse        `json:"assignment"`
-}
-
-type ClassIDResponse struct {
-	ID uuid.UUID `json:"id_kelas"`
-	Name string    `json:"name"`
-	Tag string     `json:"tag"`
-	Description string `json:"description"`
-	Teacher string `json:"teacher"`
-	TeacherID uuid.UUID `json:"teacher_id"`
-
-	Week []WeekResponse `json:"week"`
+	Assignment        []AssignmentResponse        `json:"assignment"`
 }

@@ -133,6 +133,9 @@ func (service *assignmentService) CreateAssignment(ctx context.Context, request 
 		return nil, fmt.Errorf("failed to create assignment: %w", err)
 	}
 	fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + newAssignment.FileId
+	if newAssignment.FileId == "" {
+		fileUrl = ""
+	}
 	fmt.Printf("Assignment created successfully\n")
 	return &dto.AssignmentResponse{
 		AssignmentID:      int(newAssignment.ID),

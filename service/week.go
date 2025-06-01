@@ -40,8 +40,6 @@ func NewWeekService(weekRepo database.WeekRepository, kelasRepo database.KelasRe
 	return &weekService{weekRepo , kelasRepo}
 }
 
-
-
 func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uuid.UUID) ([]dto.WeekResponse, error) {
 	class, err := service.kelasRepo.GetById(ctx, nil, classID)
 	if err != nil {
@@ -61,44 +59,44 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 	var weekResponse []dto.WeekResponse
 	for _, week := range weeks {
 		var weekRes dto.WeekResponse
-		
+		var assignmentResponse []dto.AssignmentResponse
+		var assignmentData dto.AssignmentResponse
 		// Check if Assignment is empty
-		hasAssignment := week.Assignment.Title != "" && 
-						week.Assignment.Description != "" && 
-						week.Assignment.ID != 0
-		
+		hasAssignment := len(week.Assignment) > 0
+		if hasAssignment {
+			for _, assignment := range week.Assignment {
+				if assignment.FileId == "" {
+					assignmentData = dto.AssignmentResponse{
+					AssignmentID: int(assignment.ID),
+					Title:        assignment.Title,
+					Description:  assignment.Description,
+					Deadline:     assignment.Deadline,
+					FileName:     nil,
+					FileId:       nil,
+					FileUrl:      nil,
+				}
+				} else {
+					fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{assignment.FileId}}.Encode()
+					assignmentData = dto.AssignmentResponse{
+						AssignmentID: int(assignment.ID),
+						Title:        assignment.Title,
+						Description:  assignment.Description,
+						Deadline:     assignment.Deadline,
+						FileName:     &assignment.FileName,
+						FileId:       &assignment.FileId,
+						FileUrl:      &fileUrl,
+					}
+				}
+				assignmentResponse = append(assignmentResponse, assignmentData)
+			}
+			weekRes.Assignment = assignmentResponse
+		} else {
+			weekRes.Assignment = []dto.AssignmentResponse{}
+		}
 		// Check if ItemPembelajaran is empty
 		hasItemPembelajaran := week.ItemPembelajaran.HeadingPertemuan != "" && 
 							  week.ItemPembelajaran.BodyPertemuan != "" && 
 							  week.ItemPembelajaran.WeekID != 0
-		
-		// Set Assignment data if exists
-		if hasAssignment {
-			if week.Assignment.FileId == "" {
-				weekRes.Assignment = &dto.AssignmentResponse{
-				AssignmentID: int(week.Assignment.ID),
-				Title:        week.Assignment.Title,
-				Description:  week.Assignment.Description,
-				Deadline:     week.Assignment.Deadline,
-				FileName:     nil,
-				FileId:       nil,
-				FileUrl:      nil,
-			}
-			} else {
-				fileUrl := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.Assignment.FileId}}.Encode()
-				weekRes.Assignment = &dto.AssignmentResponse{
-					AssignmentID: int(week.Assignment.ID),
-					Title:        week.Assignment.Title,
-					Description:  week.Assignment.Description,
-					Deadline:     week.Assignment.Deadline,
-					FileName:     &week.Assignment.FileName,
-					FileId:       &week.Assignment.FileId,
-					FileUrl:      &fileUrl,
-				}
-			}
-		} else {
-			weekRes.Assignment = nil
-		}
 
 		// Set ItemPembelajaran data if exists
 		if hasItemPembelajaran {
@@ -139,8 +137,6 @@ func (service *weekService) GetAllWeekByClassID(ctx context.Context, classID uui
 		}
 		weekResponse = append(weekResponse, weekRes)
 	}		
-
-
 	return weekResponse, nil
 }
 
@@ -150,7 +146,34 @@ func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.We
 		return dto.WeekResponse{}, err
 	}
 	fileUrlItem := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.ItemPembelajaran.FileId}}.Encode()
-	fileUrlAssignment := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{week.Assignment.FileId}}.Encode()
+	var assignmentResp []dto.AssignmentResponse
+	var assignmentData dto.AssignmentResponse
+	for _, assignment := range week.Assignment {
+		if assignment.FileId == "" {
+			assignmentData = dto.AssignmentResponse{
+				AssignmentID: int(assignment.ID),
+				Title:        assignment.Title,
+				Description:  assignment.Description,
+				Deadline:     assignment.Deadline,
+				FileName:     nil,
+				FileId:       nil,
+				FileUrl:      nil,
+			}
+		} else {
+			fileUrlAssignment := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/" + "?" + url.Values{"id": []string{assignment.FileId}}.Encode()
+			assignmentData = dto.AssignmentResponse{
+				AssignmentID: int(assignment.ID),
+				Title:        assignment.Title,
+				Description:  assignment.Description,
+				Deadline:     assignment.Deadline,
+				FileName:     &assignment.FileName,
+				FileId:       &assignment.FileId,
+				FileUrl:      &fileUrlAssignment,
+			}
+		}
+		assignmentResp = append(assignmentResp, assignmentData)
+	}
+
 	resp := dto.WeekResponse{
 		WeekID:           week.ID,
 		WeekNumber:       week.WeekNumber,
@@ -164,18 +187,7 @@ func (service *weekService) GetWeekByID(ctx context.Context, weekID int) (dto.We
 			FileId:           &week.ItemPembelajaran.FileId,
 			FileUrl:          &fileUrlItem,
 		},
-		Assignment:       &dto.AssignmentResponse{
-			AssignmentID:      int(week.Assignment.ID),
-			Title:       week.Assignment.Title,
-			Description: week.Assignment.Description,
-			Deadline:    week.Assignment.Deadline,
-			FileName:    &week.Assignment.FileName,
-			FileId:      &week.Assignment.FileId,
-			FileUrl:     &fileUrlAssignment,
-		},
-	}
-	if week.Assignment.Title == "" {
-		resp.Assignment = nil
+		Assignment: assignmentResp,
 	}
 	if week.ItemPembelajaran.HeadingPertemuan == "" {
 		resp.ItemPembelajarans = nil
