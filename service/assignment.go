@@ -23,6 +23,7 @@ type (
 		CreateAssignment(ctx context.Context, request dto.CreateAssignmentRequest,file io.Reader) (*dto.AssignmentResponse, error)
 		GetAssignmentByID(ctx context.Context, assignmentID int) (*dto.AssignmentResponse, error)
 		UpdateAssignment(ctx context.Context, request dto.ProrcessedUpdateAssignmentRequest, file io.Reader) (*dto.AssignmentResponse,error)
+		DeleteAssignment(ctx context.Context, assignmentID int) error
 
 		// student
 		GetAssignmentByIDStudentID(ctx context.Context, assignmentID int, userID uuid.UUID) (dto.StudentGetAssignmentByIDResponse, error)
@@ -245,6 +246,36 @@ func (service *assignmentService) GetAssignmentByID(ctx context.Context, assignm
 		FileId:      &assignment.FileId,
 		FileUrl:     &fileUrl,
 	}, nil
+}
+
+
+func (service *assignmentService) DeleteAssignment(ctx context.Context, assignmentID int) error {
+	// check if assignment exists
+	assignment, err := service.assignmentRepo.GetAssignmentByID(ctx, nil, assignmentID)
+	if err != nil {
+		return fmt.Errorf("assignment not found: %w", err)
+	}
+	// delete file if exists
+	if assignment.FileId != "" {
+		params := url.Values{}
+		params.Add("id", assignment.FileId)
+		delurl := os.Getenv("CONTENT_URL") + "/item-pembelajaran/?" + params.Encode()
+		delreq, err := http.NewRequest(http.MethodDelete, delurl, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create delete request: %w", err)
+		}
+		client := &http.Client{}
+		resp, err := client.Do(delreq)
+		if err != nil {
+			return fmt.Errorf("failed to delete file: %w", err)
+		}
+		defer resp.Body.Close()
+	}
+	err = service.assignmentRepo.DeleteAssignment(ctx, nil, assignmentID)
+	if err != nil {
+		return fmt.Errorf("failed to delete assignment: %w", err)
+	}
+	return nil
 }
 
 // student

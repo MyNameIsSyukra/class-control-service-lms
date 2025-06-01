@@ -14,9 +14,7 @@ type (
 		GetAssignmentByID(ctx context.Context, tx *gorm.DB, assignmentID int) (entities.Assignment, error)
 		CreateAssignment(ctx context.Context, tx *gorm.DB, assignmentReq dto.CreateAssignmentRequest) (*entities.Assignment, error)
 		UpdateAssignment(ctx context.Context, tx *gorm.DB, assignmentID int, assignmentReq dto.ProrcessedUpdateAssignmentRequest) (*entities.Assignment, error)
-		// DeleteAssignment(ctx context.Context, tx *gorm.DB, assignmentID int) error
-		// UpdateAssignment(ctx context.Context, tx *gorm.DB, assignmentID int, assignmentReq dto.AssignmentRequest) (*entities.Assignment, error)
-		// GetAssignmentByWeekID(ctx context.Context, tx *gorm.DB, weekID int) ([]*entities.Assignment, error)
+		DeleteAssignment(ctx context.Context, tx *gorm.DB, assignmentID int) error
 	}
 	assignmentRepository struct {
 		db *gorm.DB
@@ -68,4 +66,16 @@ func (repo *assignmentRepository) UpdateAssignment(ctx context.Context, tx *gorm
 		return nil, err
 	}
 	return &assignment, nil
+}
+
+func (repo *assignmentRepository) DeleteAssignment(ctx context.Context, tx *gorm.DB, assignmentID int) error {
+	var assignment entities.Assignment
+	if err := repo.db.Where("id = ?", assignmentID).First(&assignment).Error; err != nil {
+		return err
+	}
+
+	if err := repo.db.Delete(&assignment).Error; err != nil {
+		return err
+	}
+	return nil
 }

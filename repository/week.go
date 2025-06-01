@@ -35,7 +35,7 @@ func NewWeekRepository(db *gorm.DB) *weekRepository {
 
 func (repo *weekRepository) GetAllWeekByClassID(ctx context.Context, tx *gorm.DB, classID uuid.UUID) ([]*entities.Week, error) {
 	var weeks []*entities.Week
-	if err := repo.db.Where("kelas_id_kelas = ?", classID).Preload("ItemPembelajaran").Preload("Assignment").Find(&weeks).Error; err != nil {
+	if err := repo.db.Where("kelas_id_kelas = ?", classID).Order("week_number ASC").Preload("ItemPembelajaran").Preload("Assignment").Find(&weeks).Error; err != nil {
 		return []*entities.Week{}, err
 	}
 	return weeks, nil

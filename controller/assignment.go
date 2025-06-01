@@ -18,6 +18,7 @@ type (
 		CreateAssignment(ctx *gin.Context)
 		GetAssignmentByID(ctx *gin.Context)
 		UpdateAssignment(ctx *gin.Context)
+		DeleteAssignment(ctx *gin.Context)
 
 		// student
 		GetAssignmentByIDStudentID(ctx *gin.Context)
@@ -136,6 +137,25 @@ func (controller *assignmentController) UpdateAssignment(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (controller *assignmentController) DeleteAssignment(ctx *gin.Context) {
+	assignmentID := ctx.Query("assignment_id")
+	parsedAssignmentID, err := strconv.Atoi(assignmentID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+
+	err = controller.assignmentService.DeleteAssignment(ctx.Request.Context(), parsedAssignmentID)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.SuccessResponse("Assignment deleted successfully")
+	ctx.JSON(200, res)
+}
+
 func (controller *assignmentController) GetAssignmentByID(ctx *gin.Context) {
 	assignmentID := ctx.Query("assignment_id")
 	parsedAssignmentID, err := strconv.Atoi(assignmentID)
@@ -155,8 +175,8 @@ func (controller *assignmentController) GetAssignmentByID(ctx *gin.Context) {
 	ctx.JSON(200, res)
 }
 
-// student
 
+// student
 func (controller *assignmentController) GetAssignmentByIDStudentID(ctx *gin.Context) {
 	assignmentID := ctx.Query("assignment_id")
 	userID := ctx.Query("user_id")
