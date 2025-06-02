@@ -16,3 +16,14 @@ func Migrate(db *gorm.DB) error{
 	
 	return nil
 }
+
+func Rollback(db *gorm.DB) error {
+	db.Migrator().DropTable(&entities.Assignment{})
+	db.Migrator().DropTable(&entities.ItemPembelajaran{})
+	db.Migrator().DropTable(&entities.Kelas{})
+	db.Migrator().DropTable(&entities.Member{})
+	db.Migrator().DropTable(&entities.AssignmentSubmission{})
+	db.Migrator().DropTable(&entities.Week{})
+
+	return nil
+}

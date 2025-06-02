@@ -14,7 +14,7 @@ import (
 func Seeder()error{
 	// Inisialisasi koneksi ke database
 	db := database.SetUpDatabaseConnection()
-	db.AutoMigrate(&entities.Kelas{}, &entities.Member{}, &entities.ItemPembelajaran{})
+	db.AutoMigrate(&entities.Kelas{}, &entities.Member{}, &entities.ItemPembelajaran{}, &entities.Assignment{}, &entities.AssignmentSubmission{}, &entities.Week{})
 	// UUID tetap
 	
 	// Generate static data for consistency across services

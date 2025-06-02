@@ -32,6 +32,14 @@ func args(db *gorm.DB) bool {
 			}
 			return false
 		}
+		if (os.Args[1] == "rollback") {
+			err := migration.Rollback(db)
+			if err != nil {
+				log.Fatalf("error running rollback: %v", err)
+			}
+			print("Rollback Success")
+			return false
+		}
     }
     return true
 }
