@@ -1,0 +1,15 @@
+
+ASSESSMENT_SERVICE_URL=http://localhost:8080
+CONTENT_URL=http://localhost:8082
+GATEWAY_URL=http://localhost:8083
+APP_NAME=class-control-lms
+DB_HOST=postgres
+DB_USER=postgres
+DB_PASS=postgres
+DB_NAME=classcontrol
+DB_PORT=5432
+DB_EXTERNAL_PORT=5433
+APP_ENV=localhost
+
+GOLANG_PORT=8081
+NGINX_PORT=80

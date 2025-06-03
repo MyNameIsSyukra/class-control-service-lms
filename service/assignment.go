@@ -293,7 +293,7 @@ func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context
 		return dto.StudentGetAssignmentByIDResponse{}, err
 	}
 	fileLink := os.Getenv("GATEWAY_URL") + "/item-pembelajaran/?id=" + assignment.FileId
-	resp.WeekID = assignment.WeekID
+	resp.ID = int(assignment.ID)
 	resp.Title = assignment.Title
 	resp.Description = assignment.Description
 	resp.FileName = assignment.FileName

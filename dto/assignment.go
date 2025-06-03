@@ -51,7 +51,7 @@ type AssignmentResponse struct {
 
 
 type StudentGetAssignmentByIDResponse struct {
-	WeekID 	int     `json:"week_id"`
+	ID 		int     `json:"assignment_id"`
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
 	Deadline    time.Time `json:"deadline"`
