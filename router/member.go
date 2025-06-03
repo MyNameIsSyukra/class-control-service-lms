@@ -13,7 +13,7 @@ func Member(server *gin.Engine, injector *do.Injector) {
 	member := server.Group("/member/admin")
 	{
 		member.POST("", memberController.AddMemberToClass)
-		member.DELETE("/", memberController.DeleteMember)
+		member.DELETE("", memberController.DeleteMember)
 	}
 	member = server.Group("/public")
 	{

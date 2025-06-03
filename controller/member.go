@@ -53,20 +53,27 @@ func (controller *memberController) AddMemberToClass(ctx *gin.Context) {
 
 
 func (controller *memberController) DeleteMember(ctx *gin.Context) {
-	id := ctx.Query("id")
+	user_id := ctx.Query("user_id")
 	// Assuming id is a UUID, you might want to parse it here
-	parsedID, err := uuid.Parse(id)
+	parsedID, err := uuid.Parse(user_id)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(400, res)
 		return
 	}
-	if err := controller.memberService.DeleteMember(ctx.Request.Context(), parsedID); err != nil {
+	class_id := ctx.Query("class_id")
+	parsedIDClassID, err := uuid.Parse(class_id)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+	if err := controller.memberService.DeleteMember(ctx.Request.Context(), parsedID,parsedIDClassID); err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(500, res)
 		return
 	}
-	ctx.JSON(200, gin.H{"message": "Member deleted successfully"})
+	ctx.JSON(200, utils.SuccessResponse(nil))
 }
 
 func (controller *memberController) GetAllClassAndAssesmentByUserID(ctx *gin.Context) {

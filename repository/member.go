@@ -22,10 +22,11 @@ type(
 		GetAllMembersByClassID(ctx context.Context, tx *gorm.DB, classID uuid.UUID) ([]*entities.Member, error)
 		GetMemberById(ctx context.Context, tx *gorm.DB, id uuid.UUID) (*entities.Member, error)
 		// UpdateMember(ctx context.Context, tx *gorm.DB, id string, member *entities.Member) (*entities.Member, error)
-		DeleteMember(ctx context.Context, tx *gorm.DB, id uuid.UUID) error
+		DeleteMember(ctx context.Context, tx *gorm.DB, user_id uuid.UUID, class_id uuid.UUID) error
 		GetAllClassByUserID(ctx context.Context, tx *gorm.DB, userID uuid.UUID) ([]entities.Kelas, error)
 		GetAllClassAndAssesmentByUserID(ctx context.Context, tx *gorm.DB, userID uuid.UUID) ([]dto.GetClassAndAssignmentResponse, error)
 		GetMemberByClassIDAndUserID(ctx context.Context, tx *gorm.DB, classID uuid.UUID, userID uuid.UUID) (*entities.Member, error)
+		CheckClassAlreadyHaveTeacher(ctx context.Context, tx *gorm.DB, classID uuid.UUID) (bool, error)
 		// GetMemberByClassID(ctx context.Context, tx *gorm.DB, classID string) (*entities.Member, error)
 		// GetMemberByUserID(ctx context.Context, tx *gorm.DB, userID string) (*entities.Member, error)
 		// GetMemberByClassIDAndUserID(ctx context.Context, tx *gorm.DB, classID string, userID string) (*entities.Member, error)
@@ -79,8 +80,8 @@ func (repo *studentRepository) GetMemberByClassIDAndUserID(ctx context.Context, 
 	return &member, nil
 }
 
-func (repo *studentRepository) DeleteMember(ctx context.Context, tx *gorm.DB, id uuid.UUID) error {
-	if err := repo.db.Where("id = ?", id).Delete(&entities.Member{}).Error; err != nil {
+func (repo *studentRepository) DeleteMember(ctx context.Context, tx *gorm.DB, user_id uuid.UUID, class_id uuid.UUID) error {
+	if err := repo.db.Where("user_user_id = ? AND kelas_kelas_id = ?", user_id, class_id).Delete(&entities.Member{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -112,6 +113,17 @@ func (repo *studentRepository) GetAllClassByUserID(ctx context.Context, tx *gorm
 	}
 
 	return kelasList, nil
+}
+
+func (repo *studentRepository) CheckClassAlreadyHaveTeacher(ctx context.Context, tx *gorm.DB, classID uuid.UUID) (bool, error) {
+	var member entities.Member
+	if err := repo.db.Where("kelas_kelas_id = ? AND role = ?", classID, "teacher").First(&member).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil // Class does not have a teacher
+		}
+		return false, err // Some other error occurred
+	}
+	return true, nil // Class has a teacher
 }
 
 func (repo *studentRepository) GetAllClassAndAssesmentByUserID(ctx context.Context, tx *gorm.DB, userID uuid.UUID) ([]dto.GetClassAndAssignmentResponse, error) {

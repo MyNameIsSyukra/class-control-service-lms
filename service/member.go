@@ -19,7 +19,7 @@ type (
 		GetAllMembersByClassID(ctx context.Context, classID uuid.UUID) ([]dto.GetMemberResponse, error)
 		// GetMemberById(ctx context.Context, id string) (*entities.Member, error)
 		// UpdateMember(ctx context.Context, id string, member *dto.UpdateMemberRequest) (*entities.Member, error)
-		DeleteMember(ctx context.Context, id uuid.UUID) error
+		DeleteMember(ctx context.Context, user_id uuid.UUID, class_id uuid.UUID) error
 		GetAllClassAndAssesmentByUserID(ctx context.Context, userID uuid.UUID) ([]dto.GetClassAndAssignmentResponse, error)
 		GetAllClassByUserID(ctx context.Context, userID uuid.UUID) ([]entities.Kelas, error)
 		// Lintas Service
@@ -57,6 +57,18 @@ func (service *memberService) AddMemberToClass(ctx context.Context, member *dto.
 		User_userID:   member.User_userID,
 		Kelas_kelasID: member.Kelas_kelasID,
 	}
+
+	if memberEntity.Role == entities.MemberRoleTeacher {
+		// Check if the class already has a teacher
+		existingTeacher, err := service.memberRepo.CheckClassAlreadyHaveTeacher(ctx, nil, member.Kelas_kelasID)
+		if err != nil {
+			return nil, err
+		}
+		if existingTeacher {
+			return nil, fmt.Errorf("class with ID %s already has a teacher", member.Kelas_kelasID)
+		}
+	}
+
 	newMember, err := service.memberRepo.AddMemberToClass(ctx, nil, memberEntity)
 	if err != nil {
 		return nil, err
@@ -101,15 +113,15 @@ func (service *memberService) GetAllMembersByClassID(ctx context.Context, classI
 	return response, nil
 }
 
-func (service *memberService) DeleteMember(ctx context.Context, id uuid.UUID) error {
-	member, err := service.memberRepo.GetMemberById(ctx, nil, id)
+func (service *memberService) DeleteMember(ctx context.Context, user_id uuid.UUID, class_id uuid.UUID) error {
+	member, err := service.memberRepo.GetMemberByClassIDAndUserID(ctx, nil, class_id, user_id)
 	if err != nil {
 		return err
 	}
 	if member == nil {
-		return fmt.Errorf("member with ID %s not found", id)
+		return fmt.Errorf("member with ID %s not found in class %s", user_id,class_id)
 	}
-	err = service.memberRepo.DeleteMember(ctx, nil, id)
+	err = service.memberRepo.DeleteMember(ctx, nil, user_id, class_id)
 	if err != nil {
 		return err
 	}
