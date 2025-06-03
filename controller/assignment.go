@@ -179,13 +179,19 @@ func (controller *assignmentController) GetAssignmentByID(ctx *gin.Context) {
 // student
 func (controller *assignmentController) GetAssignmentByIDStudentID(ctx *gin.Context) {
 	assignmentID := ctx.Query("assignment_id")
-	userID := ctx.Query("user_id")
 	parsedAssignmentID, err := strconv.Atoi(assignmentID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(400, res)
 		return
 	}
+	claims, err := DecodeJWTToken(ctx)
+	if err != nil {
+		res := utils.FailedResponse(err.Error())
+		ctx.JSON(400, res)
+		return
+	}
+	userID := claims.UserID
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
