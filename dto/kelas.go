@@ -31,6 +31,7 @@ type GetAllKelasRepoResponse struct {
 type KelasResponse struct {
 	ID          uuid.UUID   	`json:"id"`
 	Name        string 			`json:"name"`
+	Tag 		string 			`json:"tag"`
 	Description string 			`json:"description"`
 	Teacher     string 			`json:"teacher"`
 	TeacherID   uuid.UUID    	`json:"teacher_id"`

@@ -2,10 +2,12 @@ package controller
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/joho/godotenv"
 )
 
 type JWTClaims struct {
@@ -29,7 +31,10 @@ func DecodeJWTToken(ctx *gin.Context) (*JWTClaims, error) {
 	}
 
 	tokenString := tokenParts[1]
-
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 	// Parse and validate token
 	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		// Make sure signing method is HMAC
@@ -38,7 +43,7 @@ func DecodeJWTToken(ctx *gin.Context) (*JWTClaims, error) {
 		}
 		// Return your JWT secret key here
 		// Replace "your-secret-key" with your actual secret key
-		return []byte("rahasianiwoishh"), nil
+		return []byte(os.Getenv("JWT_SECRETKEY")), nil
 	})
 
 	if err != nil {

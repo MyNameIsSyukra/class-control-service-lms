@@ -39,10 +39,14 @@ func (service *kelasService) GetAllKelasWithPagination(ctx context.Context, req 
 		datas = append(datas, dto.KelasResponse{
 			ID:          kelas.ID,
 			Name:        kelas.Name,
+			Tag:         kelas.Tag,
 			Description: kelas.Description,
 			Teacher:     kelas.Teacher,
 			TeacherID:   kelas.TeacherID,
 		})
+	}
+	if len(datas) == 0 {
+		datas = []dto.KelasResponse{}
 	}
 	return dto.KelasPaginationResponse{
 		Data: datas,
