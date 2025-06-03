@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -167,11 +168,22 @@ func (repo *studentRepository) GetAllClassAndAssesmentByUserID(ctx context.Conte
 		if err != nil {
 			assessments = nil
 		}
+		// check if assessments start time is in the future
+		for i := 0; i < len(assessments); i++ {
+			if assessments[i].StartTime.Before(time.Now()) {
+				// remove the assessment from the list
+				assessments = append(assessments[:i], assessments[i+1:]...)
+				i-- // Decrement i to account for the removed element
+			}
+		}
 		data.ClassAssessment = assessments
-		if data.ClassAssessment == nil {
+		if len(data.ClassAssessment) == 0 {
 			continue
 		}
 		datas = append(datas, data)
+	}
+	if len(datas) == 0 {
+		datas = []dto.GetClassAndAssignmentResponse{}
 	}
 	return datas, nil
 }

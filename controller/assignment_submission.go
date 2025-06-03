@@ -39,13 +39,21 @@ func (controller *assignmentSubmissionController) CreateAssignmentSubmission(ctx
 		ctx.JSON(400, res)
 		return
 	}
-	cleanUUIDStr := strings.Trim(req.UserID, "[]\"")
+	claims, err := DecodeJWTToken(ctx)
+	if err != nil {
+		res := utils.FailedResponse(fmt.Sprintf("Authentication failed: %s", err.Error()))
+		ctx.JSON(http.StatusUnauthorized, res)
+		return
+	}
+
+	cleanUUIDStr := strings.Trim(claims.ID, "[]\"")
+	println("Cleaned UUID String:", cleanUUIDStr)
 	userID, err := uuid.Parse(cleanUUIDStr)
     if err != nil {
         ctx.JSON(http.StatusBadRequest, gin.H{
             "error":   "Invalid UUID format",
             "details": fmt.Sprintf("Cannot parse UUID: %s", cleanUUIDStr),
-            "received": req.UserID,
+            "received": userID,
         })
         return
     }

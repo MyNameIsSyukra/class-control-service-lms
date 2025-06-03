@@ -77,7 +77,13 @@ func (controller *memberController) DeleteMember(ctx *gin.Context) {
 }
 
 func (controller *memberController) GetAllClassAndAssesmentByUserID(ctx *gin.Context) {
-	userID := ctx.Query("userID")
+	claims,err := DecodeJWTToken(ctx)
+	if err != nil {
+		res := utils.FailedResponse("Unauthorized")
+		ctx.JSON(401, res)
+		return
+	}
+	userID := claims.UserID
 	// Assuming userID is a UUID, you might want to parse it here
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
@@ -96,7 +102,13 @@ func (controller *memberController) GetAllClassAndAssesmentByUserID(ctx *gin.Con
 }
 
 func (controller *memberController) GetAllClassByUserID(ctx *gin.Context) {
-	userID := ctx.Query("userID")
+	claims,err := DecodeJWTToken(ctx)
+	if err != nil {
+		res := utils.FailedResponse("Unauthorized")
+		ctx.JSON(401, res)
+		return
+	}
+	userID := claims.UserID
 	// Assuming userID is a UUID, you might want to parse it here
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {

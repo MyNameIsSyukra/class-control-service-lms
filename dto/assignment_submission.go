@@ -8,7 +8,6 @@ import (
 )
 type InitAssignmentSubmissionRequest struct {
 	AssignmentID int       `form:"assignment_id"`
-	UserID       string `gorm:"type:uuid" form:"user_id"`
 	IDFile       string    `form:"id_file"`
 }
 type AssignmentSubmissionRequest struct {
