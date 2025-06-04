@@ -46,7 +46,7 @@ func (controller *assignmentSubmissionController) CreateAssignmentSubmission(ctx
 		return
 	}
 
-	cleanUUIDStr := strings.Trim(claims.ID, "[]\"")
+	cleanUUIDStr := strings.Trim(claims.UserID, "[]\"")
 	println("Cleaned UUID String:", cleanUUIDStr)
 	userID, err := uuid.Parse(cleanUUIDStr)
     if err != nil {
