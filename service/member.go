@@ -69,6 +69,7 @@ func (service *memberService) AddMemberToClass(ctx context.Context, member *dto.
 	for _, student := range member.Students {
 		memberEntity := entities.Member{
 			Username:      student.Username,
+			Role:          entities.MemberRoleStudent,
 			User_userID:   student.User_userID,
 			Kelas_kelasID: member.Kelas_kelasID,
 		}
