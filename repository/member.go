@@ -75,7 +75,7 @@ func (repo *studentRepository) GetMemberById(ctx context.Context, tx *gorm.DB, i
 
 func (repo *studentRepository) GetMemberByClassIDAndUserID(ctx context.Context, tx *gorm.DB, classID uuid.UUID, userID uuid.UUID) (*entities.Member, error) {
 	var member entities.Member
-	if err := repo.db.Where("kelas_kelas_id = ? AND user_user_id = ?", classID, userID).Find(&member).Error; err != nil {
+	if err := repo.db.Where("kelas_kelas_id = ? AND user_user_id = ?", classID, userID).Preload("Kelas").Find(&member).Error; err != nil {
 		return &entities.Member{}, err
 	}
 	return &member, nil

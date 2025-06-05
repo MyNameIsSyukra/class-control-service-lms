@@ -42,7 +42,7 @@ func (repo *kelasRepository) GetAll(ctx context.Context,
 
 	query := tx.WithContext(ctx).Model(&entities.Kelas{})
 	if req.Search != "" {
-		query = query.Where("name LIKE ?", "%"+req.Search+"%")
+		query = query.Where("name ILIKE ?", "%"+req.Search+"%")
 	}
 	if err := query.Count(&count).Error; err != nil {
 		return dto.GetAllKelasRepoResponse{}, err

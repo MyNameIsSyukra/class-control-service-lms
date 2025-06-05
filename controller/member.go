@@ -34,7 +34,7 @@ func NewMemberController(memberService kelas.MemberService) MemberController {
 
 
 func (controller *memberController) AddMemberToClass(ctx *gin.Context) {
-	var req dto.AddMemberRequest
+	var req dto.InitAddMemberRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		res := utils.FailedResponse(err.Error())
 		ctx.JSON(400, res)
@@ -43,7 +43,7 @@ func (controller *memberController) AddMemberToClass(ctx *gin.Context) {
 
 	member, err := controller.memberService.AddMemberToClass(ctx.Request.Context(), &req)
 	if err != nil {
-		res := utils.FailedResponse(err.Error())
+		res := utils.FailedResponseWithData("Failed to add member to class", err)
 		ctx.JSON(500, res)
 		return
 	}

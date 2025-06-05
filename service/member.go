@@ -15,7 +15,7 @@ import (
 
 type (
 	MemberService interface {
-		AddMemberToClass(ctx context.Context, member *dto.AddMemberRequest) (*entities.Member, error)
+		AddMemberToClass(ctx context.Context, member *dto.InitAddMemberRequest) ([]entities.Member, []error)
 		GetAllMembersByClassID(ctx context.Context, classID uuid.UUID) ([]dto.GetMemberResponse, error)
 		// GetMemberById(ctx context.Context, id string) (*entities.Member, error)
 		// UpdateMember(ctx context.Context, id string, member *dto.UpdateMemberRequest) (*entities.Member, error)
@@ -36,50 +36,50 @@ func NewMemberService(memberRepo database.StudentRepository, kelasRepo database.
 	return &memberService{memberRepo, kelasRepo}
 }
 
-func (service *memberService) AddMemberToClass(ctx context.Context, member *dto.AddMemberRequest) (*entities.Member, error) {
+func (service *memberService) AddMemberToClass(ctx context.Context, member *dto.InitAddMemberRequest) ([]entities.Member, []error) {
 	// check if the class exists
+	var errs []error
 	kelas, err := service.kelasRepo.GetById(ctx, nil, member.Kelas_kelasID)
 	if err != nil {
-		return nil, err
+		errs = append(errs, fmt.Errorf("error retrieving class with ID %s: %v", member.Kelas_kelasID, err))
+		return nil, errs
 	}
 	if kelas.ID == uuid.Nil {
-		return nil, fmt.Errorf("class with ID %s not found", member.Kelas_kelasID)
+		errs = append(errs, fmt.Errorf("class with ID %s not found", member.Kelas_kelasID))
+		return nil, errs
 	}
-	// Check if the member already exists in the class
-	_, err = service.memberRepo.GetMemberByClassIDAndUserID(ctx, nil,member.Kelas_kelasID ,member.User_userID)
-	if err != nil {
-		return nil, err
-	}	
 	
-	memberEntity := &entities.Member{
-		Username:      member.Username,
-		Role:          member.Role,
-		User_userID:   member.User_userID,
-		Kelas_kelasID: member.Kelas_kelasID,
-	}
-
-	if memberEntity.Role == entities.MemberRoleTeacher {
-		// Check if the class already has a teacher
-		existingTeacher, err := service.memberRepo.CheckClassAlreadyHaveTeacher(ctx, nil, member.Kelas_kelasID)
+	// check if requested members
+	for _, student := range member.Students {
+		// Check if the member already exists in the class
+		checkStudent, err := service.memberRepo.GetMemberByClassIDAndUserID(ctx, nil,member.Kelas_kelasID ,student.User_userID)
 		if err != nil {
-			return nil, err
+			errs = append(errs, fmt.Errorf("error checking member existence for user %s: %v", student.Username, err))
+			continue
 		}
-		if existingTeacher {
-			return nil, fmt.Errorf("class with ID %s already has a teacher", member.Kelas_kelasID)
-		}
-	}
-
-	newMember, err := service.memberRepo.AddMemberToClass(ctx, nil, memberEntity)
-	if err != nil {
-		return nil, err
-	}
-	if newMember.Role == entities.MemberRoleTeacher {
-		_, err := service.kelasRepo.UpdateClassTeacherID(ctx, nil, member.Kelas_kelasID, member.User_userID, member.Username)
-		if err != nil {
-			return nil, err
+		if checkStudent != nil {
+			errs = append(errs, fmt.Errorf("member %s with user ID %s already exists in class %s", student.Username, student.User_userID, checkStudent.Kelas.Name))
+			continue
 		}
 	}
-	return newMember, nil
+	if len(errs) > 0 {
+		return nil, errs
+	}
+	var newMembers []entities.Member
+	for _, student := range member.Students {
+		memberEntity := entities.Member{
+			Username:      student.Username,
+			User_userID:   student.User_userID,
+			Kelas_kelasID: member.Kelas_kelasID,
+		}
+		newMember, err := service.memberRepo.AddMemberToClass(ctx, nil, &memberEntity)
+		if err != nil {	
+			errs = append(errs, fmt.Errorf("error adding member %s to class %s: %v", student.Username, member.Kelas_kelasID, err))
+			continue
+		}
+		newMembers = append(newMembers, *newMember)
+	}
+	return newMembers, errs
 }
 
 func (service *memberService) GetAllClassAndAssesmentByUserID(ctx context.Context, userID uuid.UUID) ([]dto.GetClassAndAssignmentResponse, error) {

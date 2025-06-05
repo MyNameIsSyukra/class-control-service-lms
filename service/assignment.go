@@ -313,7 +313,7 @@ func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context
 		resp.Status = assSubmission.Status
 		params := url.Values{}
 		params.Add("id", assSubmission.IDFile)
-		link := os.Getenv("GATEWAY_URL") + "/student-assignment/user/?" + params.Encode()
+		link := os.Getenv("GATEWAY_URL") + "/student-assignment/user?" + params.Encode()
 		resp.StudentSubmissionLink = &link
 	} else {
 		resp.Score = 0
