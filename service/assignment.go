@@ -296,6 +296,7 @@ func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context
 	resp.ID = int(assignment.ID)
 	resp.Title = assignment.Title
 	resp.Description = assignment.Description
+	resp.Deadline = assignment.Deadline
 	resp.FileName = assignment.FileName
 	resp.FileLink = fileLink
 	// check if student has submitted the assignment
