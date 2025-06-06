@@ -57,7 +57,7 @@ func (service *memberService) AddMemberToClass(ctx context.Context, member *dto.
 			errs = append(errs, fmt.Errorf("error checking member existence for user %s: %v", student.Username, err))
 			continue
 		}
-		if checkStudent != nil {
+		if checkStudent.User_userID != uuid.Nil {
 			errs = append(errs, fmt.Errorf("member %s with user ID %s already exists in class %s", student.Username, student.User_userID, checkStudent.Kelas.Name))
 			continue
 		}

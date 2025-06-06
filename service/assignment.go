@@ -316,6 +316,7 @@ func (service *assignmentService) GetAssignmentByIDStudentID(ctx context.Context
 		params.Add("id", assSubmission.IDFile)
 		link := os.Getenv("GATEWAY_URL") + "/student-assignment/user?" + params.Encode()
 		resp.StudentSubmissionLink = &link
+		resp.StudentSubmissionFileName = &assSubmission.FileName
 	} else {
 		resp.Score = 0
 		resp.Status = entities.StatusTodo
