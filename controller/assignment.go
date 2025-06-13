@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -40,6 +41,13 @@ func (controller *assignmentController) CreateAssignment(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
+	// Form Validation
+	if req.Deadline.Before(time.Now()){
+		res := utils.FailedResponse("Deadline cannot be in the past")
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+
 	processedReq := dto.CreateAssignmentRequest{
 		WeekID:      req.WeekID,
 		Title:       req.Title,
@@ -103,6 +111,13 @@ func (controller *assignmentController) UpdateAssignment(ctx *gin.Context) {
 		return
 	}
 
+	// form validation
+	if req.Deadline.Before(time.Now()) {
+		res := utils.FailedResponse("Deadline cannot be in the past")
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	
 	// Coba ambil file dari form, jika ada
 	fileHeader, err := ctx.FormFile("file")
 	var file io.Reader
@@ -187,13 +202,10 @@ func (controller *assignmentController) GetAssignmentByIDStudentID(ctx *gin.Cont
 		ctx.JSON(400, res)
 		return
 	}
-	claims, err := DecodeJWTToken(ctx)
-	if err != nil {
-		res := utils.FailedResponse(err.Error())
-		ctx.JSON(400, res)
-		return
-	}
-	userID := claims.UserID
+
+	userID :=ctx.MustGet("uuid").(string)
+
+	// userID := claims.UserID
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())

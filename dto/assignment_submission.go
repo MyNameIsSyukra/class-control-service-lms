@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 type InitAssignmentSubmissionRequest struct {
-	AssignmentID int       `form:"assignment_id"`
-	IDFile       string    `form:"id_file"`
+	AssignmentID int       `form:"assignment_id" binding:"required"`
+	// IDFile       string    `form:"id_file"`
 }
 type AssignmentSubmissionRequest struct {
 	AssignmentID int       `json:"assignment_id"`

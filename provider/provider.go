@@ -16,6 +16,12 @@ func InitDatabase(injector *do.Injector) {
 	})
 }
 
+func ProvideJWTDependency(injector *do.Injector) {
+	do.ProvideNamed(injector, "jwtService", func(i *do.Injector) (service.JWTService, error) {
+		return service.NewJWTService(), nil
+	})
+}
+
 func ProvideKelasDependency(injector *do.Injector){
 	db := do.MustInvokeNamed[*gorm.DB](injector, "db")
 
@@ -73,6 +79,7 @@ func ProvideAssignmentSubmissionDependency(injector *do.Injector) {
 
 func RegisterProviders(injector *do.Injector) {
 	InitDatabase(injector)
+	ProvideJWTDependency(injector)
 	ProvideKelasDependency(injector)
 	ProvideMemberDependency(injector)
 	ProvideWeekDependency(injector)

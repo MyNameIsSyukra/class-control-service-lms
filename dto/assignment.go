@@ -6,14 +6,14 @@ import (
 )
 
 type AssignmentRequest struct {
-	WeekID      int     `form:"week_id" json:"week_id"`
-	Title       string  `form:"title" json:"title"`
-	Description string  `form:"description" json:"description"`
-	Deadline    time.Time `form:"deadline" json:"deadline"`
+	WeekID      int     `form:"week_id" json:"week_id" binding:"required"`
+	Title       string  `form:"title" json:"title" binding:"required"`
+	Description string  `form:"description" json:"description" binding:"required"`
+	Deadline    time.Time `form:"deadline" json:"deadline" binding:"required"`
 }
 
 type InitUpdateAssignmentRequest struct {
-	AssignmentID int     `form:"assignment_id"`
+	AssignmentID int     `form:"assignment_id" binding:"required"`
 	WeekID      int     `form:"week_id"`
 	Title       string  `form:"title"`
 	Description string  `form:"description"`

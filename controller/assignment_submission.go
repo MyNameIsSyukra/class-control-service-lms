@@ -4,11 +4,9 @@ import (
 	"LMSGo/dto"
 	Assignment "LMSGo/service"
 	"LMSGo/utils"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -39,24 +37,24 @@ func (controller *assignmentSubmissionController) CreateAssignmentSubmission(ctx
 		ctx.JSON(400, res)
 		return
 	}
-	claims, err := DecodeJWTToken(ctx)
-	if err != nil {
-		res := utils.FailedResponse(fmt.Sprintf("Authentication failed: %s", err.Error()))
+	// Ambil token dari context
+	userID, err := uuid.Parse(ctx.MustGet("uuid").(string))
+	if  err != nil {
+		res := utils.FailedResponse("Token not found in context")
 		ctx.JSON(http.StatusUnauthorized, res)
 		return
 	}
 
-	cleanUUIDStr := strings.Trim(claims.UserID, "[]\"")
-	println("Cleaned UUID String:", cleanUUIDStr)
-	userID, err := uuid.Parse(cleanUUIDStr)
-    if err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "error":   "Invalid UUID format",
-            "details": fmt.Sprintf("Cannot parse UUID: %s", cleanUUIDStr),
-            "received": userID,
-        })
-        return
-    }
+	println("Cleaned UUID String:", userID.String())
+	// userID, err := uuid.Parse(cleanUUIDStr)
+    // if err != nil {
+    //     ctx.JSON(http.StatusBadRequest, gin.H{
+    //         "error":   "Invalid UUID format",
+    //         "details": fmt.Sprintf("Cannot parse UUID: %s", cleanUUIDStr),
+    //         "received": userID,
+    //     })
+    //     return
+    // }
 
 	var file io.Reader
 	var fileName string
