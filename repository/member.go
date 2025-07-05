@@ -170,7 +170,7 @@ func (repo *studentRepository) GetAllClassAndAssesmentByUserID(ctx context.Conte
 		}
 		// check if assessments start time is in the future
 		for i := 0; i < len(assessments); i++ {
-			if assessments[i].StartTime.Before(time.Now()) {
+			if assessments[i].EndTime.Before(time.Now()) {
 				// remove the assessment from the list
 				assessments = append(assessments[:i], assessments[i+1:]...)
 				i-- // Decrement i to account for the removed element
