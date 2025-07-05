@@ -44,7 +44,7 @@ func (controller *memberController) AddMemberToClass(ctx *gin.Context) {
 	member, err := controller.memberService.AddMemberToClass(ctx.Request.Context(), &req)
 	if err != nil {
 		res := utils.FailedResponseWithData("Failed to add member to class", err)
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	res := utils.SuccessResponse(member)
@@ -70,7 +70,7 @@ func (controller *memberController) DeleteMember(ctx *gin.Context) {
 	}
 	if err := controller.memberService.DeleteMember(ctx.Request.Context(), parsedID,parsedIDClassID); err != nil {
 		res := utils.FailedResponse(err.Error())
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	ctx.JSON(200, utils.SuccessResponse(nil))
@@ -89,7 +89,7 @@ func (controller *memberController) GetAllClassAndAssesmentByUserID(ctx *gin.Con
 	classes, err := controller.memberService.GetAllClassAndAssesmentByUserID(ctx.Request.Context(), parsedUserID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	res := utils.SuccessResponse(classes)
@@ -127,7 +127,7 @@ func (controller *memberController) GetAllMembersByClassIDData(ctx *gin.Context)
 	members, err := controller.memberService.GetAllMembersByClassID(ctx.Request.Context(), classID)
 	if err != nil {
 		res := utils.FailedResponse("Failed to get members")
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	res := utils.SuccessResponse(members)
@@ -147,7 +147,7 @@ func (controller *memberController) GetAllMembersByClassID(ctx *gin.Context) {
 	members, err := controller.memberService.GetAllMembersByClassID(ctx.Request.Context(), classID)
 	if err != nil {
 		res := utils.FailedResponse("Failed to get members")
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	ctx.JSON(200, members)
@@ -175,7 +175,7 @@ func (controller *memberController) GetMemberByClassIDAndUserID(ctx *gin.Context
 	member, err := controller.memberService.GetMemberByClassIDAndUserID(ctx.Request.Context(), parsedClassID, parsedUserID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	res := utils.SuccessResponse(member)

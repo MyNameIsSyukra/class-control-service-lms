@@ -105,8 +105,11 @@ func (service *kelasService) Create(ctx context.Context,kelas *dto.CreateKelasRe
 
 func (service *kelasService) Update(ctx context.Context,id uuid.UUID, kelas *dto.KelasUpdateRequest) (*entities.Kelas,error) {
 	clas,err := service.kelasRepo.GetById(ctx, nil, id)
-	if clas == nil {
-		return nil,err
+	if clas.ID == uuid.Nil {
+		return nil, fmt.Errorf("class with ID %s not found", id)
+	}
+	if err != nil {
+		return nil, err
 	}
 	classEntity := &entities.Kelas{
 		ID:          clas.ID,
@@ -126,9 +129,14 @@ func (service *kelasService) Update(ctx context.Context,id uuid.UUID, kelas *dto
 
 func (service *kelasService) Delete(ctx context.Context,id uuid.UUID) error {
 	class, err := service.kelasRepo.GetById(ctx, nil, id)
-	if class == nil {
+	if class.ID == uuid.Nil {
+		return fmt.Errorf("class with ID %s not found", id)
+	}
+
+	if err != nil {
 		return err
 	}
+
 	err = service.kelasRepo.Delete(ctx, nil, id)
 	if err != nil {
 		return err

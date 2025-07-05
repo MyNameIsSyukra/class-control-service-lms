@@ -108,7 +108,7 @@ func (controller *weekController) CreateWeeklySection(ctx *gin.Context) {
 	item, err := controller.weekService.CreateWeeklySection(ctx.Request.Context(),processedReq,file)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	res := utils.SuccessResponse(item)
@@ -166,7 +166,7 @@ func (controller *weekController) UpdateWeeklySection(ctx *gin.Context) {
 	item, err := controller.weekService.UpdateWeeklySection(ctx.Request.Context(),processedReq, file)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	res := utils.SuccessResponse(item)
@@ -185,7 +185,7 @@ func (controller *weekController) GetAllWeekByClassID(ctx *gin.Context) {
 	weeks, err := controller.weekService.GetAllWeekByClassID(ctx.Request.Context(), parsedClassID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	res := utils.SuccessResponse(weeks)
@@ -203,7 +203,7 @@ func (controller *weekController) GetWeekByID(ctx *gin.Context) {
 	week, err := controller.weekService.GetWeekByID(ctx.Request.Context(), weekIDInt)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 
@@ -222,7 +222,7 @@ func (controller *weekController) DeleteWeeklySection(ctx *gin.Context) {
 	err = controller.weekService.DeleteWeeklySection(ctx.Request.Context(), parsedWeekID)
 	if err != nil {
 		res := utils.FailedResponse(err.Error())
-		ctx.JSON(500, res)
+		ctx.JSON(400, res)
 		return
 	}
 	res := utils.SuccessResponse(nil)

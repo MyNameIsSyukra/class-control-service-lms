@@ -352,7 +352,15 @@ func (service *weekService) UpdateWeeklySection(ctx context.Context,req dto.Upda
 	
 
 func (service *weekService) DeleteWeeklySection(ctx context.Context, weekID int) error {
-	err := service.weekRepo.DeleteWeeklySection(ctx, nil, weekID)
+	week, err := service.weekRepo.GetWeekByID(ctx, nil, weekID)
+	if err != nil {
+		return fmt.Errorf("failed to get week with ID %d: %w", weekID, err)
+	}
+	if week.ID == 0 {
+		return fmt.Errorf("week with ID %d not found", weekID)
+	}
+	
+	err = service.weekRepo.DeleteWeeklySection(ctx, nil, weekID)
 	if err != nil {
 		return err
 	}

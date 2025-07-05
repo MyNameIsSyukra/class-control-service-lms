@@ -15,8 +15,8 @@ func Member(server *gin.Engine, injector *do.Injector) {
 	jwtService := do.MustInvokeNamed[service.JWTService](injector, "jwtService")
 	member := server.Group("/member/admin")
 	{
-		member.POST("",middleware.Authenticate(jwtService) , memberController.AddMemberToClass)
-		member.DELETE("",middleware.Authenticate(jwtService) , memberController.DeleteMember)
+		member.POST("",middleware.Authenticate(jwtService) ,middleware.RequireAdminRole(jwtService), memberController.AddMemberToClass)
+		member.DELETE("",middleware.Authenticate(jwtService) ,middleware.RequireAdminRole(jwtService), memberController.DeleteMember)
 	}
 	member = server.Group("/public")
 	{

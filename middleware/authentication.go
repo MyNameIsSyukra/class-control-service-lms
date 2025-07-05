@@ -52,3 +52,77 @@ func Authenticate(jwtService service.JWTService) gin.HandlerFunc {
 		ctx.Next()
 	}
 }
+
+func RequireTeacherRole(jwtService service.JWTService) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// Ambil token dari context yang sudah di-set oleh middleware Authenticate
+		token, exists := ctx.Get("token")
+		if !exists {
+			response := utils.FailedResponse("Token not found in context")
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		tokenString, ok := token.(string)
+		if !ok {
+			response := utils.FailedResponse("Invalid token format")
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		// Dapatkan role dari token
+		role, err := jwtService.GeRoleByToken(tokenString)
+		if err != nil {
+			response := utils.FailedResponse("Failed to get user role")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, response)
+			return
+		}
+		// Periksa apakah role adalah teacher
+		if role != "teacher" && role != "admin" {
+			response := utils.FailedResponse("Access denied: Teacher role required")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, response)
+			return
+		}
+
+		// Set role ke context untuk digunakan di handler selanjutnya
+		ctx.Set("role", role)
+		ctx.Next()
+	}
+}
+
+func RequireAdminRole(jwtService service.JWTService) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// Ambil token dari context yang sudah di-set oleh middleware Authenticate
+		token, exists := ctx.Get("token")
+		if !exists {
+			response := utils.FailedResponse("Token not found in context")
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		tokenString, ok := token.(string)
+		if !ok {
+			response := utils.FailedResponse("Invalid token format")
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		// Dapatkan role dari token
+		role, err := jwtService.GeRoleByToken(tokenString)
+		if err != nil {
+			response := utils.FailedResponse("Failed to get user role")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, response)
+			return
+		}
+		// Periksa apakah role adalah teacher
+		if role != "admin" {
+			response := utils.FailedResponse("Access denied: Teacher role required")
+			ctx.AbortWithStatusJSON(http.StatusForbidden, response)
+			return
+		}
+
+		// Set role ke context untuk digunakan di handler selanjutnya
+		ctx.Set("role", role)
+		ctx.Next()
+	}
+}

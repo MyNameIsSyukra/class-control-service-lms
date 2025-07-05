@@ -15,9 +15,9 @@ func WeekSection(route *gin.Engine, injector *do.Injector){
 	
 	routes := route.Group("teacher/kelas")
 	{
-		routes.POST("/weekly-section",middleware.Authenticate(jwtService) , weekController.CreateWeeklySection)
-		routes.PUT("/weekly-section", middleware.Authenticate(jwtService) ,weekController.UpdateWeeklySection)
-		routes.DELETE("/weekly-section",middleware.Authenticate(jwtService) , weekController.DeleteWeeklySection)
+		routes.POST("/weekly-section",middleware.Authenticate(jwtService) ,middleware.RequireTeacherRole(jwtService), weekController.CreateWeeklySection)
+		routes.PUT("/weekly-section", middleware.Authenticate(jwtService) ,middleware.RequireTeacherRole(jwtService),weekController.UpdateWeeklySection)
+		routes.DELETE("/weekly-section",middleware.Authenticate(jwtService) ,middleware.RequireTeacherRole(jwtService), weekController.DeleteWeeklySection)
 	}
 	routes = route.Group("/kelas")
 	{

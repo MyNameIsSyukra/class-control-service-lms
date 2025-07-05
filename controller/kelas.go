@@ -99,8 +99,8 @@ func (service *kelasController) Update(ctx *gin.Context) {
 
 	kelas, err := service.kelasService.Update(ctx.Request.Context(), id, &req)
 	if err != nil {
-		res := response.FailedResponse("Failed to update class")
-		ctx.JSON(500, res)
+		res := response.FailedResponse(err.Error())
+		ctx.JSON(400, res)
 		return
 	}
 	ctx.JSON(200, kelas)
@@ -115,8 +115,8 @@ func (service *kelasController) Delete(ctx *gin.Context) {
 	}
 	err = service.kelasService.Delete(ctx.Request.Context(), id)
 	if err != nil {
-		res := response.FailedResponse("Failed to delete class")
-		ctx.JSON(500, res)
+		res := response.FailedResponse(err.Error())
+		ctx.JSON(400, res)
 		return
 	}
 	res := response.SuccessResponse(nil)

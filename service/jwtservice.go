@@ -11,6 +11,7 @@ import (
 type JWTService interface {
 	ValidateToken(token string) (*jwt.Token, error)
 	GetUserIDByToken(token string) (string, error)
+	GeRoleByToken(token string) (string, error)
 }
 
 type jwtService struct {
@@ -58,4 +59,15 @@ func (j *jwtService) GetUserIDByToken(token string) (string, error) {
 	claims := tToken.Claims.(jwt.MapClaims)
 	id := fmt.Sprintf("%v", claims["uuid"])
 	return id, nil
+}
+
+func (j *jwtService) GeRoleByToken(token string) (string, error) {
+	tToken, err := j.ValidateToken(token)
+	if err != nil {
+		return "", err
+	}
+
+	claims := tToken.Claims.(jwt.MapClaims)
+	role := fmt.Sprintf("%v", claims["role_name"])
+	return role, nil
 }

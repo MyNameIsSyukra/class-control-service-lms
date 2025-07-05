@@ -55,6 +55,7 @@ func (repo *assignmentSubmissionRepository) CreateAssignmentSubmission(ctx conte
 	res := entities.AssignmentSubmission{
 		ID:           assignmentSubmission.ID,
 		AssignmentID: assignmentSubmission.AssignmentID,
+		FileName:    assignmentSubmission.FileName,
 		UserID:       assignmentSubmission.UserID,
 		IDFile:       assignmentSubmission.IDFile,
 		Status: 	 assignmentSubmission.Status,

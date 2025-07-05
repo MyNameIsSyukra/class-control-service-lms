@@ -14,10 +14,10 @@ func Assignment(route *gin.Engine, injector *do.Injector) {
 	jwtService := do.MustInvokeNamed[service.JWTService](injector, "jwtService")
 	routes := route.Group("teacher/kelas")
 	{
-		routes.POST("/assignment",middleware.Authenticate(jwtService), assignmentController.CreateAssignment)
-		routes.GET("/assignment",middleware.Authenticate(jwtService) , assignmentController.GetAssignmentByID)
-		routes.PUT("/assignment",middleware.Authenticate(jwtService) , assignmentController.UpdateAssignment)
-		routes.DELETE("/assignment",middleware.Authenticate(jwtService) , assignmentController.DeleteAssignment)
+		routes.POST("/assignment",middleware.Authenticate(jwtService),middleware.RequireTeacherRole(jwtService), assignmentController.CreateAssignment)
+		routes.GET("/assignment",middleware.Authenticate(jwtService) ,middleware.RequireTeacherRole(jwtService), assignmentController.GetAssignmentByID)
+		routes.PUT("/assignment",middleware.Authenticate(jwtService) ,middleware.RequireTeacherRole(jwtService), assignmentController.UpdateAssignment)
+		routes.DELETE("/assignment",middleware.Authenticate(jwtService) ,middleware.RequireTeacherRole(jwtService), assignmentController.DeleteAssignment)
 	}
 	studentRoute := route.Group("student/kelas")
 	{

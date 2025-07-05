@@ -59,6 +59,13 @@ var (
 	StudentMichaelID  = uuid.MustParse("550e8400-e29b-41d4-a716-446655440213")
 	StudentNancyID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440214")
 	StudentOscarID    = uuid.MustParse("550e8400-e29b-41d4-a716-446655440215")
+
+	// Random YouTube URLs for video content
+	randomYouTubeURLs = []string{
+		"https://youtu.be/k2_2H3qT9q0?feature=shared",
+		"https://youtu.be/djF9-SHIgQg?feature=shared",
+		"https://youtu.be/B2IldXHBDA0?feature=shared",
+	}
 )
 
 // ========== SHARED DATA STRUCTURE ==========
@@ -77,35 +84,42 @@ type SharedUserData struct {
 	Role     entities.MemberRole
 	ClassID  uuid.UUID
 }
+
+// Helper function to get random YouTube URL
+func getRandomYouTubeURL(weekNum int) string {
+	// Use week number to cycle through the URLs
+	index := (weekNum - 1) % len(randomYouTubeURLs)
+	return randomYouTubeURLs[index]
+}
+
 func GenerateStaticData() ([]SharedClassData, []SharedUserData) {
 	// Generate consistent class data with static UUIDs
 	classes := []SharedClassData{
-		{
-			ClassID:     ClassWebProgID,
-			Name:        "Pemrograman Web",
-			Tag:         "PWEB",
-			Description: "Mata kuliah pemrograman web menggunakan teknologi modern",
-			Teacher:     "Dr. Ahmad Santoso",
-			TeacherID:   TeacherAhmadID,
-		},
-		{
-			ClassID:     ClassDatabaseID,
-			Name:        "Basis Data",
-			Tag:         "BD",
-			Description: "Mata kuliah tentang konsep dan implementasi basis data",
-			Teacher:     "Prof. Siti Nurhaliza",
-			TeacherID:   TeacherSitiID,
-		},
-		{
-			ClassID:     ClassAlgorithmID,
-			Name:        "Algoritma dan Struktur Data",
-			Tag:         "ASD",
-			Description: "Mata kuliah fundamental tentang algoritma dan struktur data",
-			Teacher:     "Dr. Budi Raharjo",
-			TeacherID:   TeacherBudiID,
-		},
-	}
-
+   {
+   	ClassID:     ClassWebProgID,
+   	Name:        "English Grammar",
+   	Tag:         "EG",
+   	Description: "Mata kuliah tata bahasa Inggris untuk pemahaman struktur kalimat",
+   	Teacher:     "Dr. Ahmad Santoso",
+   	TeacherID:   TeacherAhmadID,
+   },
+   {
+   	ClassID:     ClassDatabaseID,
+   	Name:        "English Conversation",
+   	Tag:         "EC",
+   	Description: "Mata kuliah percakapan bahasa Inggris untuk komunikasi sehari-hari",
+   	Teacher:     "Prof. Siti Nurhaliza",
+   	TeacherID:   TeacherSitiID,
+   },
+   {
+   	ClassID:     ClassAlgorithmID,
+   	Name:        "English Literature",
+   	Tag:         "EL",
+   	Description: "Mata kuliah sastra Inggris untuk pemahaman karya sastra klasik dan modern",
+   	Teacher:     "Dr. Budi Raharjo",
+   	TeacherID:   TeacherBudiID,
+   },
+}
 	// Generate user data with static UUIDs
 	var users []SharedUserData
 
@@ -188,59 +202,93 @@ func SeedClassControlData(db *gorm.DB, sharedClasses []SharedClassData, sharedUs
 
 	// Seed Weeks and related data
 	for _, classData := range sharedClasses {
+		// 68525b244df1e68bde926058 tugas 1 kelas 1
+		// 68525b614df1e68bde92605b tugas 2 kelas 1
+		// 68525b7f4df1e68bde926060 tugas 1 kelas 2
+		// 68525b8c4df1e68bde926063 tugas 2 kelas 2
+		// 68525ba44df1e68bde926068 tugas 1 kelas 3
+		// 68525bb34df1e68bde92606b tugas 2 kelas 3
+		// 68525bc74df1e68bde926070 tugas 1 kelas 4
+		// 68525bd34df1e68bde926073 tugas 2 kelas 4
+
+		// file id for submission
+		// 68429cdb04d68646d09139b8 submission file id
+		// 68433640d85fc55aafc70d2d
+		var assignmentFileID string
 		for weekNum := 1; weekNum <= 4; weekNum++ {
-			week := entities.Week{
-				WeekNumber:    weekNum,
-				Kelas_idKelas: classData.ClassID,
-			}
-			db.Create(&week)
+		week := entities.Week{
+			WeekNumber:    weekNum,
+			Kelas_idKelas: classData.ClassID,
+		}
+		db.Create(&week)
 
-			// Seed ItemPembelajaran
-			itemPembelajaran := entities.ItemPembelajaran{
-			    WeekID:           week.ID,
-			    HeadingPertemuan: fmt.Sprintf("Pertemuan %d - %s", weekNum, classData.Name),
-			    BodyPertemuan:    fmt.Sprintf("Materi pembelajaran minggu ke-%d untuk mata kuliah %s", weekNum, classData.Name),
-			    UrlVideo:         fmt.Sprintf("https://youtube.com/watch?v=example_%s_week_%d", classData.Tag, weekNum),
-			    FileName:         fmt.Sprintf("materi_%s_week_%d.pdf", classData.Tag, weekNum),
-			    FileId:           fmt.Sprintf("1A2B3C4D5E6F7G8H9I0J_%s_week_%d", classData.Tag, weekNum), // Google Drive file ID format
-			}
-			db.Create(&itemPembelajaran)
+		// Seed ItemPembelajaran with random YouTube URLs
+		itemPembelajaran := entities.ItemPembelajaran{
+		    WeekID:           week.ID,
+		    HeadingPertemuan: fmt.Sprintf("Pertemuan %d - %s", weekNum, classData.Name),
+		    BodyPertemuan:    fmt.Sprintf("Materi pembelajaran minggu ke-%d untuk mata kuliah %s", weekNum, classData.Name),
+		    UrlVideo:         getRandomYouTubeURL(weekNum), // Using random YouTube URLs
+		    FileName:         fmt.Sprintf("materi_%s_week_%d.pdf", classData.Tag, weekNum),
+		    FileId:           "6852508f4df1e68bde926047", // Google Drive file ID format
+		}
+		db.Create(&itemPembelajaran)
 
-			// Seed Assignment (every 2 weeks)
-			if weekNum%2 == 0 {
-			    assignment := entities.Assignment{
-			        Title:       fmt.Sprintf("Tugas %s - Minggu %d", classData.Name, weekNum),
-			        Description: fmt.Sprintf("Tugas praktikum untuk minggu ke-%d mata kuliah %s", weekNum, classData.Name),
-			        Deadline:    time.Now().AddDate(0, 0, 7),
-			        FileName:    fmt.Sprintf("tugas_%s_week_%d.pdf", classData.Tag, weekNum),
-			        FileId:      fmt.Sprintf("1Z2Y3X4W5V6U7T8S9R0Q_%s_week_%d", classData.Tag, weekNum), // Google Drive file ID format
-			        WeekID:      week.ID,
-			    }
-			    db.Create(&assignment)
-
-
-				// Seed AssignmentSubmissions using shared user data
-				studentsInClass := make([]SharedUserData, 0)
-				for _, user := range sharedUsers {
-					if user.ClassID == classData.ClassID && user.Role == entities.MemberRoleStudent {
-						studentsInClass = append(studentsInClass, user)
-					}
+		// Seed Assignment (every 2 weeks)
+		if weekNum%2 == 0 {
+			// Determine assignment FileID based on class tag and week
+			switch classData.Tag {
+			case "PWEB": // Kelas 1
+				if weekNum == 2 {
+					assignmentFileID = "68525b244df1e68bde926058" // tugas 1 kelas 1
+				} else if weekNum == 4 {
+					assignmentFileID = "68525b614df1e68bde92605b" // tugas 2 kelas 1
 				}
-
-				// Create submissions for first 3 students in class
-				for j := 0; j < 3 && j < len(studentsInClass); j++ {
-					submission := entities.AssignmentSubmission{
-						AssignmentID: int(assignment.ID),
-						UserID:       studentsInClass[j].UserID,
-						IDFile:       fmt.Sprintf("file_%s_%d_%s", classData.Tag, weekNum, studentsInClass[j].UserID.String()[:8]),
-						FileName:     fmt.Sprintf("submission_%s.pdf", studentsInClass[j].Username),
-						Score:        85 + j*5,
-						Status:       entities.StatusSubmitted,
-						CreatedAt:    time.Now(),
-						UpdatedAt:    time.Now(),
-					}
-					db.Create(&submission)
+			case "BD": // Kelas 2
+				if weekNum == 2 {
+					assignmentFileID = "68525b7f4df1e68bde926060" // tugas 1 kelas 2
+				} else if weekNum == 4 {
+					assignmentFileID = "68525b8c4df1e68bde926063" // tugas 2 kelas 2
 				}
+			case "ASD": // Kelas 3
+				if weekNum == 2 {
+					assignmentFileID = "68525ba44df1e68bde926068" // tugas 1 kelas 3
+				} else if weekNum == 4 {
+					assignmentFileID = "68525bb34df1e68bde92606b" // tugas 2 kelas 3
+				}
+			}
+
+		    assignment := entities.Assignment{
+		        Title:       fmt.Sprintf("Tugas %s - Minggu %d", classData.Name, weekNum),
+		        Description: fmt.Sprintf("Tugas praktikum untuk minggu ke-%d mata kuliah %s", weekNum, classData.Name),
+		        Deadline:    time.Now().AddDate(0, 0, 7),
+		        FileName:    fmt.Sprintf("tugas_%s_week_%d.pdf", classData.Tag, weekNum),
+		        FileId:      assignmentFileID, // Using specific FileID from comment
+		        WeekID:      week.ID,
+		    }
+		    db.Create(&assignment)
+
+			// Seed AssignmentSubmissions using shared user data
+			studentsInClass := make([]SharedUserData, 0)
+			for _, user := range sharedUsers {
+				if user.ClassID == classData.ClassID && user.Role == entities.MemberRoleStudent {
+					studentsInClass = append(studentsInClass, user)
+				}
+			}
+
+			// Create submissions for first 3 students in class
+			for j := 0; j < 3 && j < len(studentsInClass); j++ {
+				submission := entities.AssignmentSubmission{
+					AssignmentID: int(assignment.ID),
+					UserID:       studentsInClass[j].UserID,
+					IDFile:       "68429cdb04d68646d09139b8",
+					FileName:     fmt.Sprintf("submission_%s.pdf", studentsInClass[j].Username),
+					Score:        85 + j*5,
+					Status:       entities.StatusSubmitted,
+					CreatedAt:    time.Now(),
+					UpdatedAt:    time.Now(),
+				}
+				db.Create(&submission)
+			}
 			}
 		}
 	}
@@ -277,4 +325,9 @@ func PrintStaticUUIDs() {
 	fmt.Printf("  - Michael Jordan: %s\n", StudentMichaelID)
 	fmt.Printf("  - Nancy Drew: %s\n", StudentNancyID)
 	fmt.Printf("  - Oscar Wilde: %s\n", StudentOscarID)
+
+	fmt.Println("\nRANDOM YOUTUBE URLs USED:")
+	for i, url := range randomYouTubeURLs {
+		fmt.Printf("  - URL %d: %s\n", i+1, url)
+	}
 }

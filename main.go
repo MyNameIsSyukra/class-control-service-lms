@@ -6,6 +6,7 @@ import (
 	migration "LMSGo/migration"
 	provider "LMSGo/provider"
 	routes "LMSGo/router"
+	"LMSGo/seed"
 	"log"
 	"os"
 
@@ -27,6 +28,14 @@ func args(db *gorm.DB) bool {
 		if (os.Args[1] == "seed") {
 			print("Seeding Success")
 			err := migration.Seeder()
+			if err != nil {
+				log.Fatalf("error running seeder: %v", err)
+			}
+			return false
+		}
+		if (os.Args[1] == "seed1000") {
+			print("Seeding Success")
+			err := seed.Seeder()
 			if err != nil {
 				log.Fatalf("error running seeder: %v", err)
 			}

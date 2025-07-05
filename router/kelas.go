@@ -18,9 +18,9 @@ func Kelas(route *gin.Engine, injector *do.Injector){
 	}
 	routes = route.Group("/kelas/admin")
 	{
-		routes.POST("",middleware.Authenticate(jwtService) , kelasController.Create)
-		routes.GET("",middleware.Authenticate(jwtService) , kelasController.GetAll)
-		routes.PUT("",middleware.Authenticate(jwtService) , kelasController.Update)
-		routes.DELETE("",middleware.Authenticate(jwtService) , kelasController.Delete)
+		routes.POST("",middleware.Authenticate(jwtService),middleware.RequireAdminRole(jwtService) , kelasController.Create)
+		routes.GET("",middleware.Authenticate(jwtService) ,middleware.RequireAdminRole(jwtService), kelasController.GetAll)
+		routes.PUT("",middleware.Authenticate(jwtService) ,middleware.RequireAdminRole(jwtService), kelasController.Update)
+		routes.DELETE("",middleware.Authenticate(jwtService) ,middleware.RequireAdminRole(jwtService), kelasController.Delete)
 	}
 }

@@ -92,6 +92,14 @@ func (service *memberService) GetAllClassAndAssesmentByUserID(ctx context.Contex
 }
 
 func (service *memberService) GetAllMembersByClassID(ctx context.Context, classID uuid.UUID) ([]dto.GetMemberResponse, error) {
+	class,err := service.kelasRepo.GetById(ctx, nil, classID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving class with ID %s: %v", classID, err)
+	}
+	if class.ID == uuid.Nil {
+		return nil, fmt.Errorf("class with ID %s not found", classID)
+	}
+
 	members, err := service.memberRepo.GetAllMembersByClassID(ctx, nil, classID)
 	if err != nil {
 		return nil, err
